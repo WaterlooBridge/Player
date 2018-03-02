@@ -19,13 +19,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.MediaController;
-import android.widget.TableLayout;
 import android.widget.TextView;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -44,7 +41,7 @@ import tv.danmaku.ijk.media.services.MediaPlayerService;
  */
 
 public class VideoView extends FrameLayout implements MediaController.MediaPlayerControl {
-    private String TAG = "IjkVideoView";
+    private String TAG = "VideoView";
     // settable by the client
     private Uri mUri;
     private Map<String, String> mHeaders;
@@ -137,7 +134,7 @@ public class VideoView extends FrameLayout implements MediaController.MediaPlaye
         mAppContext = context.getApplicationContext();
 
         initBackground();
-        initRenders();
+        setRender(RENDER_SURFACE_VIEW);
 
         mVideoWidth = 0;
         mVideoHeight = 0;
@@ -899,33 +896,6 @@ public class VideoView extends FrameLayout implements MediaController.MediaPlaye
     public static final int RENDER_NONE = 0;
     public static final int RENDER_SURFACE_VIEW = 1;
     public static final int RENDER_TEXTURE_VIEW = 2;
-
-    private List<Integer> mAllRenders = new ArrayList<Integer>();
-    private int mCurrentRenderIndex = 0;
-    private int mCurrentRender = RENDER_NONE;
-
-    private void initRenders() {
-        mAllRenders.clear();
-
-            mAllRenders.add(RENDER_SURFACE_VIEW);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-            mAllRenders.add(RENDER_TEXTURE_VIEW);
-            mAllRenders.add(RENDER_NONE);
-
-        if (mAllRenders.isEmpty())
-            mAllRenders.add(RENDER_SURFACE_VIEW);
-        mCurrentRender = mAllRenders.get(mCurrentRenderIndex);
-        setRender(mCurrentRender);
-    }
-
-    public int toggleRender() {
-        mCurrentRenderIndex++;
-        mCurrentRenderIndex %= mAllRenders.size();
-
-        mCurrentRender = mAllRenders.get(mCurrentRenderIndex);
-        setRender(mCurrentRender);
-        return mCurrentRender;
-    }
 
     @NonNull
     public static String getRenderText(Context context, int render) {
