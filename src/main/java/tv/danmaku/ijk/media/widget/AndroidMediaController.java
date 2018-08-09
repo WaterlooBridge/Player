@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.graphics.Rect;
 import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Message;
@@ -225,14 +224,11 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
                     hide();
                     break;
                 case SHOW_PROGRESS:
-                    if (!mPlayer.isPlaying()) {
-                        return;
-                    }
                     pos = setProgress();
                     if (pos == -1) {
                         return;
                     }
-                    if (!mDragging && mShowing) {
+                    if (!mDragging && mShowing && mPlayer.isPlaying()) {
                         msg = obtainMessage(SHOW_PROGRESS);
                         sendMessageDelayed(msg, 1000 - (pos % 1000));
                         updatePausePlay();
@@ -363,8 +359,7 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
                 return;
             }
 
-
-            final long newposition = (long) (mDuration * progress) / 1000;
+            final long newposition = (mDuration * progress) / 1000;
             String time = generateTime(newposition);
             if (mInstantSeeking) {
                 mHandler.removeCallbacks(mLastSeekBarRunnable);
@@ -429,14 +424,8 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
                     mRoot.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
                     mWindow.showAsDropDown(mAnchor, 0, -mRoot.getMeasuredHeight());
                 } else {
-                    int[] location = new int[2];
-                    Rect anchorRect = new Rect(location[0], location[1],
-                            location[0] + mRoot.getWidth(), location[1]
-                            + mRoot.getHeight());
-
                     mWindow.setAnimationStyle(mAnimStyle);
-                    mWindow.showAtLocation(mRoot, Gravity.BOTTOM,
-                            anchorRect.left, 0);
+                    mWindow.showAtLocation(mRoot, Gravity.BOTTOM, 0, 0);
                 }
             }
             mShowing = true;
