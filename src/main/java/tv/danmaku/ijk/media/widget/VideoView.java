@@ -45,6 +45,7 @@ public class VideoView extends FrameLayout implements MediaController.MediaPlaye
     // settable by the client
     private Uri mUri;
     private Map<String, String> mHeaders;
+    private String userAgent;
 
     // all possible internal states
     private static final int STATE_ERROR = -1;
@@ -530,9 +531,9 @@ public class VideoView extends FrameLayout implements MediaController.MediaPlaye
                                 .setPositiveButton(R.string.VideoView_error_button,
                                         new DialogInterface.OnClickListener() {
                                             public void onClick(DialogInterface dialog, int whichButton) {
-                                            /* If we get here, there is no onError listener, so
-                                             * at least inform them that the video is over.
-                                             */
+                                                /* If we get here, there is no onError listener, so
+                                                 * at least inform them that the video is over.
+                                                 */
                                                 if (mOnCompletionListener != null) {
                                                     mOnCompletionListener.onCompletion(mMediaPlayer);
                                                 }
@@ -923,10 +924,18 @@ public class VideoView extends FrameLayout implements MediaController.MediaPlaye
         if (mUri != null) {
             ijkMediaPlayer = new IjkMediaPlayer();
             ijkMediaPlayer.native_setLogLevel(IjkMediaPlayer.IJK_LOG_DEBUG);
+
+            ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "probesize", 1024 * 1024);
+            if (userAgent != null)
+                ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "user-agent", userAgent);
         }
         mediaPlayer = ijkMediaPlayer;
 
         return mediaPlayer;
+    }
+
+    public void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
     }
 
     //-------------------------
