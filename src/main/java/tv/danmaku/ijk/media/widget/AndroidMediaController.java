@@ -63,6 +63,7 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
     private AudioManager mAM;
     private Runnable mLastSeekBarRunnable;
     private boolean mDisableProgress = false;
+    private boolean isLock;
 
     public AndroidMediaController(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -89,6 +90,10 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
         } else {
             actionBar.hide();
         }
+    }
+
+    public void setLock(boolean lock) {
+        isLock = lock;
     }
 
     @Override
@@ -377,7 +382,7 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
 
         public void onStopTrackingTouch(SeekBar bar) {
             if (!mInstantSeeking)
-                mPlayer.seekTo((int) mDuration * bar.getProgress() / 1000);
+                mPlayer.seekTo((int) (mDuration * bar.getProgress() / 1000));
 
             show(sDefaultTimeout);
             mHandler.removeMessages(SHOW_PROGRESS);
@@ -411,29 +416,31 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
 
     @Override
     public void show(int timeout) {
-        if (!mShowing) {
-            if (mPauseButton != null)
-                mPauseButton.requestFocus();
-            disableUnsupportedButtons();
+        if (!isLock) {
+            if (!mShowing) {
+                if (mPauseButton != null)
+                    mPauseButton.requestFocus();
+                disableUnsupportedButtons();
 
-            if (mFromXml) {
-                setVisibility(View.VISIBLE);
-            } else {
-                if (mAnchor != null) {
-                    mWindow.setAnimationStyle(mAnimStyle);
-                    mRoot.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
-                    mWindow.showAsDropDown(mAnchor, 0, -mRoot.getMeasuredHeight());
+                if (mFromXml) {
+                    setVisibility(View.VISIBLE);
                 } else {
-                    mWindow.setAnimationStyle(mAnimStyle);
-                    mWindow.showAtLocation(mRoot, Gravity.BOTTOM, 0, 0);
+                    if (mAnchor != null) {
+                        mWindow.setAnimationStyle(mAnimStyle);
+                        mRoot.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+                        mWindow.showAsDropDown(mAnchor, 0, -mRoot.getMeasuredHeight());
+                    } else {
+                        mWindow.setAnimationStyle(mAnimStyle);
+                        mWindow.showAtLocation(mRoot, Gravity.BOTTOM, 0, 0);
+                    }
                 }
+                mShowing = true;
+                if (mShownListener != null)
+                    mShownListener.onShown();
             }
-            mShowing = true;
-            if (mShownListener != null)
-                mShownListener.onShown();
+            updatePausePlay();
+            mHandler.sendEmptyMessage(SHOW_PROGRESS);
         }
-        updatePausePlay();
-        mHandler.sendEmptyMessage(SHOW_PROGRESS);
 
         if (timeout != 0) {
             mHandler.removeMessages(FADE_OUT);
@@ -474,14 +481,9 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
         super.setEnabled(enabled);
     }
 
-    public void onConfigurationChanged(Configuration newConfig) {
+    public void onFullscreenChanged(boolean fullscreen) {
         hide();
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            if (mFullscreen != null)
-                mFullscreen.setImageResource(R.drawable.ic_fullscreen_exit);
-        } else {
-            if (mFullscreen != null)
-                mFullscreen.setImageResource(R.drawable.ic_fullscreen);
-        }
+        if (mFullscreen != null)
+            mFullscreen.setImageResource(fullscreen ? R.drawable.ic_fullscreen_exit : R.drawable.ic_fullscreen);
     }
 }

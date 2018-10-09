@@ -927,7 +927,7 @@ public class VideoView extends FrameLayout implements MediaController.MediaPlaye
 
             ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "probesize", 1024 * 1024);
             if (userAgent != null)
-                ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "user-agent", userAgent);
+                ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "user_agent", userAgent);
         }
         mediaPlayer = ijkMediaPlayer;
 
