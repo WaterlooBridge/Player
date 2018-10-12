@@ -98,6 +98,8 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
 
     @Override
     public void show() {
+        if (isLock)
+            return;
         show(sDefaultTimeout);
         if (mActionBar != null)
             mActionBar.show();
@@ -332,21 +334,26 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
     };
 
     private void updatePausePlay() {
+        updatePausePlay(mPlayer.isPlaying());
+    }
+
+    private void updatePausePlay(boolean isPlaying) {
         if (mRoot == null || mPauseButton == null)
             return;
 
-        if (mPlayer.isPlaying())
+        if (isPlaying)
             mPauseButton.setImageResource(IC_MEDIA_PAUSE_ID);
         else
             mPauseButton.setImageResource(IC_MEDIA_PLAY_ID);
     }
 
     private void doPauseResume() {
+        boolean isPlaying = mPlayer.isPlaying();
         if (mPlayer.isPlaying())
             mPlayer.pause();
         else
             mPlayer.start();
-        updatePausePlay();
+        updatePausePlay(!isPlaying);
     }
 
     private SeekBar.OnSeekBarChangeListener mSeekListener = new SeekBar.OnSeekBarChangeListener() {
@@ -416,31 +423,29 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
 
     @Override
     public void show(int timeout) {
-        if (!isLock) {
-            if (!mShowing) {
-                if (mPauseButton != null)
-                    mPauseButton.requestFocus();
-                disableUnsupportedButtons();
+        if (!mShowing) {
+            if (mPauseButton != null)
+                mPauseButton.requestFocus();
+            disableUnsupportedButtons();
 
-                if (mFromXml) {
-                    setVisibility(View.VISIBLE);
+            if (mFromXml) {
+                setVisibility(View.VISIBLE);
+            } else {
+                if (mAnchor != null) {
+                    mWindow.setAnimationStyle(mAnimStyle);
+                    mRoot.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+                    mWindow.showAsDropDown(mAnchor, 0, -mRoot.getMeasuredHeight());
                 } else {
-                    if (mAnchor != null) {
-                        mWindow.setAnimationStyle(mAnimStyle);
-                        mRoot.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
-                        mWindow.showAsDropDown(mAnchor, 0, -mRoot.getMeasuredHeight());
-                    } else {
-                        mWindow.setAnimationStyle(mAnimStyle);
-                        mWindow.showAtLocation(mRoot, Gravity.BOTTOM, 0, 0);
-                    }
+                    mWindow.setAnimationStyle(mAnimStyle);
+                    mWindow.showAtLocation(mRoot, Gravity.BOTTOM, 0, 0);
                 }
-                mShowing = true;
-                if (mShownListener != null)
-                    mShownListener.onShown();
             }
-            updatePausePlay();
-            mHandler.sendEmptyMessage(SHOW_PROGRESS);
+            mShowing = true;
+            if (mShownListener != null)
+                mShownListener.onShown();
         }
+        updatePausePlay();
+        mHandler.sendEmptyMessage(SHOW_PROGRESS);
 
         if (timeout != 0) {
             mHandler.removeMessages(FADE_OUT);
