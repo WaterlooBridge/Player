@@ -2,7 +2,6 @@ package tv.danmaku.ijk.media.widget;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.media.AudioManager;
 import android.os.Handler;
@@ -235,11 +234,9 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
                     if (pos == -1) {
                         return;
                     }
-                    if (!mDragging && mShowing && mPlayer.isPlaying()) {
-                        msg = obtainMessage(SHOW_PROGRESS);
-                        sendMessageDelayed(msg, 1000 - (pos % 1000));
-                        updatePausePlay();
-                    }
+                    if (!mDragging && mShowing && mPlayer.isPlaying())
+                        sendMessageDelayed(obtainMessage(SHOW_PROGRESS), 1000 - (pos % 1000));
+                    updatePausePlay();
                     break;
             }
         }
@@ -334,26 +331,21 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
     };
 
     private void updatePausePlay() {
-        updatePausePlay(mPlayer.isPlaying());
-    }
-
-    private void updatePausePlay(boolean isPlaying) {
         if (mRoot == null || mPauseButton == null)
             return;
 
-        if (isPlaying)
+        if (mPlayer.isPlaying())
             mPauseButton.setImageResource(IC_MEDIA_PAUSE_ID);
         else
             mPauseButton.setImageResource(IC_MEDIA_PLAY_ID);
     }
 
     private void doPauseResume() {
-        boolean isPlaying = mPlayer.isPlaying();
         if (mPlayer.isPlaying())
             mPlayer.pause();
         else
             mPlayer.start();
-        updatePausePlay(!isPlaying);
+        updatePausePlay();
     }
 
     private SeekBar.OnSeekBarChangeListener mSeekListener = new SeekBar.OnSeekBarChangeListener() {
