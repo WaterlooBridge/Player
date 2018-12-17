@@ -95,6 +95,10 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
         isLock = lock;
     }
 
+    public boolean isLock() {
+        return isLock;
+    }
+
     @Override
     public void show() {
         if (isLock)
