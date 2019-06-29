@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
+import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
@@ -19,6 +20,7 @@ import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import tv.danmaku.ijk.media.player.IIjkMediaPlayer;
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.ISurfaceTextureHolder;
 
@@ -127,6 +129,22 @@ public class SurfaceRenderView extends SurfaceView implements IRenderView {
                     textureHolder.setSurfaceTexture(null);
                 }
                 mp.setDisplay(mSurfaceHolder);
+            }
+        }
+
+        @Override
+        public void bindToMediaPlayer(IIjkMediaPlayer mp) {
+            if (mp != null) {
+                if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) &&
+                        (mp instanceof ISurfaceTextureHolder)) {
+                    ISurfaceTextureHolder textureHolder = (ISurfaceTextureHolder) mp;
+                    textureHolder.setSurfaceTexture(null);
+                }
+                try {
+                    mp.setSurface(mSurfaceHolder.getSurface());
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
             }
         }
 

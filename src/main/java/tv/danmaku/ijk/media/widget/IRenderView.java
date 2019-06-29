@@ -7,6 +7,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.View;
 
+import tv.danmaku.ijk.media.player.IIjkMediaPlayer;
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 
 /**
@@ -39,6 +40,7 @@ public interface IRenderView {
 
     interface ISurfaceHolder {
         void bindToMediaPlayer(IMediaPlayer mp);
+        void bindToMediaPlayer(IIjkMediaPlayer mp);
 
         @NonNull
         IRenderView getRenderView();

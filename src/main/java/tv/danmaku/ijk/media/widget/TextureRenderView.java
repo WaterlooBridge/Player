@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
+import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
@@ -19,6 +20,7 @@ import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import tv.danmaku.ijk.media.player.IIjkMediaPlayer;
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.ISurfaceTextureHolder;
 import tv.danmaku.ijk.media.player.ISurfaceTextureHost;
@@ -153,6 +155,32 @@ public class TextureRenderView extends TextureView implements IRenderView {
                 }
             } else {
                 mp.setSurface(openSurface());
+            }
+        }
+
+        @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+        public void bindToMediaPlayer(IIjkMediaPlayer mp) {
+            if (mp == null)
+                return;
+
+            if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) &&
+                    (mp instanceof ISurfaceTextureHolder)) {
+                ISurfaceTextureHolder textureHolder = (ISurfaceTextureHolder) mp;
+                mTextureView.mSurfaceCallback.setOwnSurfaceTexture(false);
+
+                SurfaceTexture surfaceTexture = textureHolder.getSurfaceTexture();
+                if (surfaceTexture != null) {
+                    mTextureView.setSurfaceTexture(surfaceTexture);
+                } else {
+                    textureHolder.setSurfaceTexture(mSurfaceTexture);
+                    textureHolder.setSurfaceTextureHost(mTextureView.mSurfaceCallback);
+                }
+            } else {
+                try {
+                    mp.setSurface(openSurface());
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
             }
         }
 

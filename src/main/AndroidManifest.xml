@@ -1,4 +1,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="tv.danmaku.ijk.media.player" >
+    package="tv.danmaku.ijk.media.player">
+
+    <application>
+
+        <service
+            android:name="tv.danmaku.ijk.media.services.MediaPlayerService"
+            android:enabled="false"
+            android:exported="false" />
+
+        <service
+            android:name="tv.danmaku.ijk.media.services.IjkMediaPlayerService"
+            android:process=":player" />
+
+    </application>
 
 </manifest>
