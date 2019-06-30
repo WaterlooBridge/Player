@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.Locale;
 import java.util.Map;
 
+import tv.danmaku.ijk.media.player.AVOptions;
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 import tv.danmaku.ijk.media.player.IjkTimedText;
@@ -45,7 +46,7 @@ public class VideoView extends FrameLayout implements MediaController.MediaPlaye
     // settable by the client
     private Uri mUri;
     private Map<String, String> mHeaders;
-    private String userAgent;
+    private AVOptions options;
 
     // all possible internal states
     private static final int STATE_ERROR = -1;
@@ -74,6 +75,7 @@ public class VideoView extends FrameLayout implements MediaController.MediaPlaye
     private int mSurfaceHeight;
     private int mVideoRotationDegree;
     private IMediaController mMediaController;
+    private VideoControlHelper mControlHelper;
     private IMediaPlayer.OnCompletionListener mOnCompletionListener;
     private IMediaPlayer.OnPreparedListener mOnPreparedListener;
     private int mCurrentBufferPercentage;
@@ -344,6 +346,11 @@ public class VideoView extends FrameLayout implements MediaController.MediaPlaye
         }
         mMediaController = controller;
         attachMediaController();
+    }
+
+    public void setControlHelper(VideoControlHelper helper) {
+        helper.setMediaPlayer(this);
+        mControlHelper = helper;
     }
 
     private void attachMediaController() {
@@ -699,6 +706,8 @@ public class VideoView extends FrameLayout implements MediaController.MediaPlaye
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
+        if (mControlHelper != null && mControlHelper.onTouchEvent(ev))
+            return true;
         if (isInPlaybackState() && mMediaController != null) {
             toggleMediaControlsVisiblity();
         }
@@ -926,16 +935,22 @@ public class VideoView extends FrameLayout implements MediaController.MediaPlaye
             ijkMediaPlayer.native_setLogLevel(IjkMediaPlayer.IJK_LOG_DEBUG);
 
 //            ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "probesize", 1024 * 1024);
-            if (userAgent != null)
-                ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "user_agent", userAgent);
+            ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "reconnect", 1);
+            if (options != null) {
+                for (AVOptions.Option o : options.options)
+                    if (o.value == null)
+                        ijkMediaPlayer.setOption(o.category, o.name, o._value);
+                    else
+                        ijkMediaPlayer.setOption(o.category, o.name, o.value);
+            }
         }
         mediaPlayer = ijkMediaPlayer;
 
         return mediaPlayer;
     }
 
-    public void setUserAgent(String userAgent) {
-        this.userAgent = userAgent;
+    public void setOptions(AVOptions options) {
+        this.options = options;
     }
 
     //-------------------------

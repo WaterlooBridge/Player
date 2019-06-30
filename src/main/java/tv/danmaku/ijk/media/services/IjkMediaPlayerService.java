@@ -42,6 +42,11 @@ public class IjkMediaPlayerService extends Service {
         }
 
         @Override
+        public void _setOption(int category, String name, long value) throws RemoteException {
+            handler.post(() -> mMediaPlayer.setOption(category, name, value));
+        }
+
+        @Override
         public void setDataSource(String path) throws RemoteException {
             handler.post(() -> {
                 try {
@@ -75,11 +80,6 @@ public class IjkMediaPlayerService extends Service {
         @Override
         public void pause() throws RemoteException {
             handler.post(() -> mMediaPlayer.pause());
-        }
-
-        @Override
-        public void setScreenOnWhilePlaying(boolean screenOn) throws RemoteException {
-            handler.post(() -> mMediaPlayer.setScreenOnWhilePlaying(screenOn));
         }
 
         @Override

@@ -12,6 +12,8 @@ interface IIjkMediaPlayer {
 
     void setOption(int category, String name, String value);
 
+    void _setOption(int category, String name, long value);
+
     void setDataSource(String path);
 
     String getDataSource();
@@ -23,8 +25,6 @@ interface IIjkMediaPlayer {
     void stop();
 
     void pause();
-
-    void setScreenOnWhilePlaying(boolean screenOn);
 
     int getVideoWidth();
 

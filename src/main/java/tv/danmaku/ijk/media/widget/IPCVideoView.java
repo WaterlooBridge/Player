@@ -27,9 +27,12 @@ import android.widget.FrameLayout;
 import android.widget.MediaController;
 import android.widget.TextView;
 
+import java.io.File;
+import java.net.URLEncoder;
 import java.util.Locale;
 import java.util.Map;
 
+import tv.danmaku.ijk.media.player.AVOptions;
 import tv.danmaku.ijk.media.player.IIjkMediaPlayer;
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.IPlayCallback;
@@ -46,7 +49,7 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
     // settable by the client
     private Uri mUri;
     private Map<String, String> mHeaders;
-    private String userAgent;
+    private AVOptions options;
 
     // all possible internal states
     private static final int STATE_ERROR = -1;
@@ -75,6 +78,7 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
     private int mSurfaceHeight;
     private int mVideoRotationDegree;
     private IMediaController mMediaController;
+    private VideoControlHelper mControlHelper;
     private OnCompletionListener mOnCompletionListener;
     private OnPreparedListener mOnPreparedListener;
     private int mCurrentBufferPercentage;
@@ -306,6 +310,11 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
         attachMediaController();
     }
 
+    public void setControlHelper(VideoControlHelper helper) {
+        helper.setMediaPlayer(this);
+        mControlHelper = helper;
+    }
+
     private void attachMediaController() {
         if (mMediaPlayer != null && mMediaController != null) {
             mMediaController.setMediaPlayer(this);
@@ -471,6 +480,7 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
                     if (mMediaController != null) {
                         mMediaController.hide();
                     }
+                    setScreenOnWhilePlaying(false);
 
                     /* If an error handler has been supplied, use it and finish. */
                     if (mOnErrorListener != null) {
@@ -652,7 +662,7 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
                 e.printStackTrace();
             }
             mMediaPlayer = null;
-            getContext().unbindService(conn);
+            getContext().getApplicationContext().unbindService(conn);
             conn = null;
             // REMOVED: mPendingSubtitleTracks.clear();
             mCurrentState = STATE_IDLE;
@@ -666,6 +676,8 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
+        if (mControlHelper != null && mControlHelper.onTouchEvent(ev))
+            return true;
         if (isInPlaybackState() && mMediaController != null) {
             toggleMediaControlsVisiblity();
         }
@@ -749,6 +761,7 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
                 mCurrentState = STATE_PLAYING;
             }
             mTargetState = STATE_PLAYING;
+            setScreenOnWhilePlaying(true);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -764,6 +777,7 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
                 }
             }
             mTargetState = STATE_PAUSED;
+            setScreenOnWhilePlaying(false);
         } catch (RemoteException e) {
             e.printStackTrace();
         }
@@ -939,14 +953,35 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
                 }
             };
             Intent intent = new Intent(getContext(), IjkMediaPlayerService.class);
-            getContext().bindService(intent, conn, Context.BIND_AUTO_CREATE);
+            getContext().getApplicationContext().bindService(intent, conn, Context.BIND_AUTO_CREATE);
         }
     }
 
     public void initPlayer() {
         try {
-            if (userAgent != null)
-                mMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "user_agent", userAgent);
+            String prefix = "";
+            if (cacheEnable) {
+                prefix = "ijkio:cache:ffio:";
+                if (getContext().getExternalCacheDir() != null) {
+                    String basicPath = getContext().getExternalCacheDir().getPath() + "/ijkiocache/";
+                    new File(basicPath).mkdirs();
+                    String fileName = URLEncoder.encode(mUri.toString());
+                    if (fileName.length() > 200)
+                        fileName = fileName.substring(0, 200);
+                    mMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "cache_file_path", basicPath + fileName + ".tmp");
+                    mMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "cache_map_path", basicPath + fileName + "2.tmp");
+                    mMediaPlayer._setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "parse_cache_map", 1);
+                    mMediaPlayer._setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "auto_save_map", 1);
+                }
+            }
+            mMediaPlayer._setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "reconnect", 1);
+            if (options != null) {
+                for (AVOptions.Option o : options.options)
+                    if (o.value == null)
+                        mMediaPlayer._setOption(o.category, o.name, o._value);
+                    else
+                        mMediaPlayer.setOption(o.category, o.name, o.value);
+            }
 
             Handler handler = new Handler(Looper.getMainLooper());
             mMediaPlayer.registerCallback(new IPlayCallback.Stub() {
@@ -989,10 +1024,10 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
             });
 
             mCurrentBufferPercentage = 0;
-            mMediaPlayer.setDataSource(mUri.toString());
+            mMediaPlayer.setDataSource(prefix + mUri.toString());
             bindSurfaceHolder(mMediaPlayer, mSurfaceHolder);
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mMediaPlayer.setScreenOnWhilePlaying(true);
+            setScreenOnWhilePlaying(true);
             mPrepareStartTime = System.currentTimeMillis();
             mMediaPlayer.prepareAsync();
 
@@ -1017,8 +1052,19 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
         }
     }
 
-    public void setUserAgent(String userAgent) {
-        this.userAgent = userAgent;
+    public void setOptions(AVOptions options) {
+        this.options = options;
+    }
+
+    private void setScreenOnWhilePlaying(boolean screenOn) {
+        if (mSurfaceHolder != null && mSurfaceHolder.getSurfaceHolder() != null)
+            mSurfaceHolder.getSurfaceHolder().setKeepScreenOn(screenOn);
+    }
+
+    private boolean cacheEnable;
+
+    public void setCacheEnable(boolean flag) {
+        cacheEnable = flag;
     }
 
     public interface OnPreparedListener {
