@@ -11,6 +11,7 @@ import android.view.Surface;
 
 import tv.danmaku.ijk.media.player.IIjkMediaPlayer;
 import tv.danmaku.ijk.media.player.IPlayCallback;
+import tv.danmaku.ijk.media.player.IPlayerFactory;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
 public class IjkMediaPlayerService extends Service {
@@ -18,7 +19,14 @@ public class IjkMediaPlayerService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return new IjkMediaPlayerStub();
+        return new IPlayerFactory();
+    }
+
+    private static class IPlayerFactory extends tv.danmaku.ijk.media.player.IPlayerFactory.Stub {
+        @Override
+        public IIjkMediaPlayer createPlayer() throws RemoteException {
+            return new IjkMediaPlayerStub();
+        }
     }
 
     private static class IjkMediaPlayerStub extends IIjkMediaPlayer.Stub {
