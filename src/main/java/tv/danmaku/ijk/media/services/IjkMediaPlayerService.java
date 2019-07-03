@@ -11,7 +11,6 @@ import android.view.Surface;
 
 import tv.danmaku.ijk.media.player.IIjkMediaPlayer;
 import tv.danmaku.ijk.media.player.IPlayCallback;
-import tv.danmaku.ijk.media.player.IPlayerFactory;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
 public class IjkMediaPlayerService extends Service {
@@ -33,6 +32,7 @@ public class IjkMediaPlayerService extends Service {
 
         private IjkMediaPlayer mMediaPlayer;
         private Handler handler;
+        private Surface surface;
 
         public IjkMediaPlayerStub() {
             mMediaPlayer = createPlayer();
@@ -41,6 +41,7 @@ public class IjkMediaPlayerService extends Service {
 
         @Override
         public void setSurface(Surface surface) throws RemoteException {
+            this.surface = surface;
             handler.post(() -> mMediaPlayer.setSurface(surface));
         }
 
@@ -122,7 +123,14 @@ public class IjkMediaPlayerService extends Service {
 
         @Override
         public void release() throws RemoteException {
-            handler.post(() -> mMediaPlayer.release());
+            handler.post(() -> {
+                mMediaPlayer.release();
+                mMediaPlayer = null;
+                if (surface != null) {
+                    surface.release();
+                    surface = null;
+                }
+            });
         }
 
         @Override
