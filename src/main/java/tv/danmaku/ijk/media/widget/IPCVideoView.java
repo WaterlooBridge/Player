@@ -482,6 +482,11 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
             new OnErrorListener() {
                 public boolean onError(IIjkMediaPlayer mp, int framework_err, int impl_err) {
                     Log.d(TAG, "Error: " + framework_err + "," + impl_err);
+                    if (cacheEnable && mCurrentState == STATE_PREPARING) {
+                        cacheEnable = false;
+                        resume();
+                        return true;
+                    }
                     mCurrentState = STATE_ERROR;
                     mTargetState = STATE_ERROR;
                     if (mMediaController != null) {
