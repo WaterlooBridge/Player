@@ -11,8 +11,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.RemoteException;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
@@ -22,6 +20,9 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.MediaController;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -1075,59 +1076,73 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
 
         @Override
         public void onPrepared() throws RemoteException {
-            IPCVideoView videoView = wr.get();
-            if (videoView == null)
-                return;
-            handler.post(() -> videoView.mPreparedListener.onPrepared(videoView.mMediaPlayer));
+            handler.post(() -> {
+                IPCVideoView videoView = wr.get();
+                if (videoView == null || videoView.mMediaPlayer == null)
+                    return;
+                videoView.mPreparedListener.onPrepared(videoView.mMediaPlayer);
+            });
         }
 
         @Override
         public void onCompletion() throws RemoteException {
-            IPCVideoView videoView = wr.get();
-            if (videoView == null)
-                return;
-            handler.post(() -> videoView.mCompletionListener.onCompletion(videoView.mMediaPlayer));
+            handler.post(() -> {
+                IPCVideoView videoView = wr.get();
+                if (videoView == null || videoView.mMediaPlayer == null)
+                    return;
+                videoView.mCompletionListener.onCompletion(videoView.mMediaPlayer);
+            });
         }
 
         @Override
         public void onBufferingUpdate(int percent) throws RemoteException {
-            IPCVideoView videoView = wr.get();
-            if (videoView == null)
-                return;
-            handler.post(() -> videoView.mBufferingUpdateListener.onBufferingUpdate(videoView.mMediaPlayer, percent));
+            handler.post(() -> {
+                IPCVideoView videoView = wr.get();
+                if (videoView == null || videoView.mMediaPlayer == null)
+                    return;
+                videoView.mBufferingUpdateListener.onBufferingUpdate(videoView.mMediaPlayer, percent);
+            });
         }
 
         @Override
         public void onSeekComplete() throws RemoteException {
-            IPCVideoView videoView = wr.get();
-            if (videoView == null)
-                return;
-            handler.post(() -> videoView.mSeekCompleteListener.onSeekComplete(videoView.mMediaPlayer));
+            handler.post(() -> {
+                IPCVideoView videoView = wr.get();
+                if (videoView == null || videoView.mMediaPlayer == null)
+                    return;
+                videoView.mSeekCompleteListener.onSeekComplete(videoView.mMediaPlayer);
+            });
         }
 
         @Override
         public void onVideoSizeChanged(int width, int height, int sar_num, int sar_den) throws RemoteException {
-            IPCVideoView videoView = wr.get();
-            if (videoView == null)
-                return;
-            handler.post(() -> videoView.mSizeChangedListener.onVideoSizeChanged(videoView.mMediaPlayer, width, height, sar_num, sar_den));
+            handler.post(() -> {
+                IPCVideoView videoView = wr.get();
+                if (videoView == null || videoView.mMediaPlayer == null)
+                    return;
+                videoView.mSizeChangedListener.onVideoSizeChanged(videoView.mMediaPlayer, width, height, sar_num, sar_den);
+            });
         }
 
         @Override
         public boolean onError(int what, int extra) throws RemoteException {
-            IPCVideoView videoView = wr.get();
-            if (videoView == null)
-                return true;
-            handler.post(() -> videoView.mErrorListener.onError(videoView.mMediaPlayer, what, extra));
+            handler.post(() -> {
+                IPCVideoView videoView = wr.get();
+                if (videoView == null || videoView.mMediaPlayer == null)
+                    return;
+                videoView.mErrorListener.onError(videoView.mMediaPlayer, what, extra);
+            });
             return true;
         }
 
         @Override
         public boolean onInfo(int what, int extra) throws RemoteException {
-            IPCVideoView videoView = wr.get();
-            if (videoView == null)
-                return true;
-            handler.post(() -> videoView.mInfoListener.onInfo(videoView.mMediaPlayer, what, extra));
+            handler.post(() -> {
+                IPCVideoView videoView = wr.get();
+                if (videoView == null || videoView.mMediaPlayer == null)
+                    return;
+                videoView.mInfoListener.onInfo(videoView.mMediaPlayer, what, extra);
+            });
             return true;
         }
     }
