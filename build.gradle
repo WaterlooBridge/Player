@@ -29,5 +29,6 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "androidx.appcompat:appcompat:$rootProject.appcompatLibraryVersion"
+    implementation 'com.squareup.okhttp3:okhttp:3.11.0'
 //    compile 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.8'
 }

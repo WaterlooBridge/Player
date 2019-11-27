@@ -14,6 +14,8 @@ interface IIjkMediaPlayer {
 
     void _setOption(int category, String name, long value);
 
+    void openProxy();
+
     void setDataSource(String path);
 
     String getDataSource();

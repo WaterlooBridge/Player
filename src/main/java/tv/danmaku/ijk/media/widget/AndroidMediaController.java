@@ -6,9 +6,6 @@ import android.content.res.Resources;
 import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Message;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -22,6 +19,10 @@ import android.widget.MediaController;
 import android.widget.PopupWindow;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -486,5 +487,9 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
         hide();
         if (mFullscreen != null)
             mFullscreen.setImageResource(fullscreen ? R.drawable.ic_fullscreen_exit : R.drawable.ic_fullscreen);
+    }
+
+    public void release() {
+        hideInternal();
     }
 }

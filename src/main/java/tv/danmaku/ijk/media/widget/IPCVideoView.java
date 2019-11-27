@@ -959,9 +959,13 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
 
     public void initPlayer() {
         try {
-            String prefix = "";
-            if (cacheEnable) {
-                prefix = "ijkio:cache:ffio:";
+            String realPath = mUri.toString();
+            if (cacheEnable && isProxyCacheMode) {
+                realPath = "ijkhttphook:" + realPath;
+                mMediaPlayer.openProxy();
+                mMediaPlayer._setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "hls_io_protocol_enable", 1);
+            } else if (cacheEnable) {
+                realPath = "ijkio:cache:ffio:" + realPath;
                 if (getContext().getExternalCacheDir() != null) {
                     String basicPath = getContext().getExternalCacheDir().getPath() + "/ijkiocache/";
                     new File(basicPath).mkdirs();
@@ -986,7 +990,7 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
             mMediaPlayer.registerCallback(new IPlayCallbackStub(this));
 
             mCurrentBufferPercentage = 0;
-            mMediaPlayer.setDataSource(prefix + mUri.toString());
+            mMediaPlayer.setDataSource(realPath);
             bindSurfaceHolder(mMediaPlayer, mSurfaceHolder);
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             setScreenOnWhilePlaying(true);
@@ -1024,9 +1028,14 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
     }
 
     private boolean cacheEnable;
+    private boolean isProxyCacheMode;
 
     public void setCacheEnable(boolean flag) {
         cacheEnable = flag;
+    }
+
+    public void setProxyCacheMode(boolean flag) {
+        isProxyCacheMode = flag;
     }
 
     private View bufferingIndicator;

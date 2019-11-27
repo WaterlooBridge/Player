@@ -1,23 +1,32 @@
 package tv.danmaku.ijk.media.services;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.RemoteException;
-import androidx.annotation.Nullable;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.Surface;
 
+import androidx.annotation.Nullable;
+
+import tv.danmaku.ijk.media.cache.HttpProxyCacheServer;
 import tv.danmaku.ijk.media.player.IIjkMediaPlayer;
 import tv.danmaku.ijk.media.player.IPlayCallback;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
 public class IjkMediaPlayerService extends Service {
 
+    private static Context context;
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
+        context = getApplicationContext();
         return new IPlayerFactory();
     }
 
@@ -29,6 +38,8 @@ public class IjkMediaPlayerService extends Service {
     }
 
     private static class IjkMediaPlayerStub extends IIjkMediaPlayer.Stub {
+
+        private static final String IJKHTTPHOOK = "ijkhttphook:";
 
         private IjkMediaPlayer mMediaPlayer;
         private Handler handler;
@@ -53,6 +64,23 @@ public class IjkMediaPlayerService extends Service {
         @Override
         public void _setOption(int category, String name, long value) throws RemoteException {
             handler.post(() -> mMediaPlayer.setOption(category, name, value));
+        }
+
+        @Override
+        public void openProxy() throws RemoteException {
+            handler.post(() -> mMediaPlayer.setOnNativeInvokeListener((what, args) -> {
+                if (what == IjkMediaPlayer.OnNativeInvokeListener.CTRL_WILL_HTTP_OPEN) {
+                    Log.e("onNativeInvoke", args.toString());
+                    String url = args.getString(IjkMediaPlayer.OnNativeInvokeListener.ARG_URL);
+                    if (!TextUtils.isEmpty(url)) {
+                        int index = url.indexOf(IJKHTTPHOOK);
+                        if (index != -1)
+                            url = url.substring(index + IJKHTTPHOOK.length());
+                        args.putString(IjkMediaPlayer.OnNativeInvokeListener.ARG_URL, Holder.holder.getProxyUrl(url));
+                    }
+                }
+                return false;
+            }));
         }
 
         @Override
@@ -220,5 +248,11 @@ public class IjkMediaPlayerService extends Service {
             ijkMediaPlayer.native_setLogLevel(IjkMediaPlayer.IJK_LOG_DEBUG);
             return ijkMediaPlayer;
         }
+    }
+
+    private static class Holder {
+        private static HttpProxyCacheServer holder = new HttpProxyCacheServer.Builder(context)
+                .maxCacheSize(Long.MAX_VALUE)
+                .build();
     }
 }
