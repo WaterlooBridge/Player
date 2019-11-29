@@ -352,6 +352,9 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
             mPrepareEndTime = System.currentTimeMillis();
             mCurrentState = STATE_PREPARED;
 
+            if (mTargetState == STATE_PAUSED)
+                pause();
+
             // Get the capabilities of the player for this stream
             // REMOVED: Metadata
 
