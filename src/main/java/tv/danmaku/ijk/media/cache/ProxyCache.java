@@ -152,7 +152,7 @@ class ProxyCache {
 
     private void tryComplete() throws ProxyCacheException {
         synchronized (stopLock) {
-            if (!isStopped() && cache.available() == source.length()) {
+            if (!isStopped() && (cache.available() == source.length() || source.length() == -1)) {
                 cache.complete();
             }
         }

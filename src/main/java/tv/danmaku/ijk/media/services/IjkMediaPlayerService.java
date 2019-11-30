@@ -3,7 +3,7 @@ package tv.danmaku.ijk.media.services;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -88,6 +88,17 @@ public class IjkMediaPlayerService extends Service {
             handler.post(() -> {
                 try {
                     mMediaPlayer.setDataSource(path);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+
+        @Override
+        public void _setDataSource(Uri uri) throws RemoteException {
+            handler.post(() -> {
+                try {
+                    mMediaPlayer.setDataSource(context, uri);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

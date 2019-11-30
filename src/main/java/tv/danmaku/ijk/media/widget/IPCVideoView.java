@@ -1,6 +1,7 @@
 package tv.danmaku.ijk.media.widget;
 
 import android.annotation.TargetApi;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
@@ -993,7 +994,10 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
             mMediaPlayer.registerCallback(new IPlayCallbackStub(this));
 
             mCurrentBufferPercentage = 0;
-            mMediaPlayer.setDataSource(realPath);
+            if (ContentResolver.SCHEME_CONTENT.equals(mUri.getScheme()))
+                mMediaPlayer._setDataSource(mUri);
+            else
+                mMediaPlayer.setDataSource(realPath);
             bindSurfaceHolder(mMediaPlayer, mSurfaceHolder);
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             setScreenOnWhilePlaying(true);

@@ -27,6 +27,8 @@ public class VideoControlHelper {
     //手动滑动的起始偏移位置
     protected int mSeekEndOffset;
 
+    protected int mSeekMaxTime = 90000;
+
     //触摸的X
     protected float mDownX;
 
@@ -123,13 +125,15 @@ public class VideoControlHelper {
 
         if (mChangePosition) {
             int totalTimeDuration = mPlayer.getDuration();
-            mSeekTimePosition = (int) (mDownPosition + (deltaX * totalTimeDuration / curWidth) / mSeekRatio);
+            mSeekTimePosition = (int) (mDownPosition + (deltaX * mSeekMaxTime / curWidth) / mSeekRatio);
             if (mSeekTimePosition > totalTimeDuration)
                 mSeekTimePosition = totalTimeDuration;
+            else if (mSeekTimePosition < 0)
+                mSeekTimePosition = 0;
             String seekTime = CommonUtil.stringForTime(mSeekTimePosition);
             String totalTime = CommonUtil.stringForTime(totalTimeDuration);
             showProgressDialog(deltaX, seekTime, mSeekTimePosition, totalTime, totalTimeDuration);
-        } else if (!mChangePosition && mBrightness) {
+        } else if (mBrightness) {
             if (Math.abs(deltaY) > mThreshold) {
                 float percent = (-deltaY / curHeight);
                 onBrightnessSlide(percent);

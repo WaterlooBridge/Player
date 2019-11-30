@@ -18,6 +18,8 @@ interface IIjkMediaPlayer {
 
     void setDataSource(String path);
 
+    void _setDataSource(in Uri uri);
+
     String getDataSource();
 
     void prepareAsync();
