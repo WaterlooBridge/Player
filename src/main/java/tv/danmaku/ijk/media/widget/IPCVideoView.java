@@ -983,6 +983,11 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
                 }
             }
             mMediaPlayer._setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "reconnect", 1);
+            if (ContentResolver.SCHEME_CONTENT.equals(mUri.getScheme())) {
+                mMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "protocol_whitelist", "crypto,file,http,https,tcp,tls,udp,pipe");
+                mMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "allowed_extensions", "ALL");
+            } else if (ContentResolver.SCHEME_FILE.equals(mUri.getScheme()))
+                mMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "allowed_extensions", "ALL");
             if (options != null) {
                 for (AVOptions.Option o : options.options)
                     if (o.value == null)
