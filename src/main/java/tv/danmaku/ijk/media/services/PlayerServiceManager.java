@@ -33,19 +33,7 @@ public class PlayerServiceManager {
 
     public void createPlayer(PlayerCreateCallback callback) {
         if (conn == null) {
-            conn = new ServiceConnection() {
-                @Override
-                public void onServiceConnected(ComponentName name, IBinder service) {
-                    factory = IPlayerFactory.Stub.asInterface(service);
-                    createPlayerInternal(callback);
-                }
-
-                @Override
-                public void onServiceDisconnected(ComponentName name) {
-                    factory = null;
-                    conn = null;
-                }
-            };
+            conn = new IjkServiceConnection(callback);
             Intent intent = new Intent(context, IjkMediaPlayerService.class);
             context.getApplicationContext().bindService(intent, conn, Context.BIND_AUTO_CREATE);
         } else {
@@ -60,6 +48,30 @@ public class PlayerServiceManager {
             callback.onPlayerCreate(factory.createPlayer());
         } catch (RemoteException e) {
             e.printStackTrace();
+        }
+    }
+
+    private class IjkServiceConnection implements ServiceConnection {
+
+        private PlayerCreateCallback callback;
+
+        IjkServiceConnection(PlayerCreateCallback callback) {
+            this.callback = callback;
+        }
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            factory = IPlayerFactory.Stub.asInterface(service);
+            if (callback != null) {
+                createPlayerInternal(callback);
+                callback = null;
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            factory = null;
+            conn = null;
         }
     }
 

@@ -312,7 +312,8 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
     }
 
     public void setControlHelper(VideoControlHelper helper) {
-        helper.setMediaPlayer(this);
+        if (helper != null)
+            helper.setMediaPlayer(this);
         mControlHelper = helper;
     }
 

@@ -1,10 +1,10 @@
 package tv.danmaku.ijk.media.widget;
 
-import android.app.Activity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.MediaController;
 import android.widget.ProgressBar;
@@ -57,13 +57,15 @@ public class VideoControlHelper {
     protected boolean mFirstTouch = false;
 
     private ViewGroup videoView;
+    private Window window;
     private AndroidMediaController controller;
     private MediaController.MediaPlayerControl mPlayer;
     private boolean isTouching = false;
 
-    public VideoControlHelper(ViewGroup videoView) {
-        this.videoView = videoView;
+    public VideoControlHelper(ViewGroup videoView, Window window) {
         mSeekEndOffset = CommonUtil.dip2px(videoView.getContext(), 50);
+        this.videoView = videoView;
+        this.window = window;
     }
 
     public void setMediaController(IMediaController controller) {
@@ -179,13 +181,13 @@ public class VideoControlHelper {
     }
 
     protected void onBrightnessSlide(float percent) {
-        mBrightnessData = ((Activity) (videoView.getContext())).getWindow().getAttributes().screenBrightness;
+        mBrightnessData = window.getAttributes().screenBrightness;
         if (mBrightnessData <= 0.00f) {
             mBrightnessData = 0.50f;
         } else if (mBrightnessData < 0.01f) {
             mBrightnessData = 0.01f;
         }
-        WindowManager.LayoutParams lpa = ((Activity) (videoView.getContext())).getWindow().getAttributes();
+        WindowManager.LayoutParams lpa = window.getAttributes();
         lpa.screenBrightness = mBrightnessData + percent;
         if (lpa.screenBrightness > 1.0f) {
             lpa.screenBrightness = 1.0f;
@@ -193,7 +195,7 @@ public class VideoControlHelper {
             lpa.screenBrightness = 0.01f;
         }
         showBrightnessDialog(lpa.screenBrightness);
-        ((Activity) (videoView.getContext())).getWindow().setAttributes(lpa);
+        window.setAttributes(lpa);
     }
 
     private View mProgressDialog;
