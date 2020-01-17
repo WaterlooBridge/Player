@@ -7,8 +7,12 @@ import okhttp3.OkHttpClient;
  */
 class HttpUtil {
 
-    public static OkHttpClient getClient() {
+    static OkHttpClient getClient() {
         return Holder.holder;
+    }
+
+    static void evictAll() {
+        Holder.holder.connectionPool().evictAll();
     }
 
     private static class Holder {

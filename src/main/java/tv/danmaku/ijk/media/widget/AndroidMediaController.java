@@ -1,6 +1,7 @@
 package tv.danmaku.ijk.media.widget;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.media.AudioManager;
@@ -12,6 +13,8 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -35,6 +38,7 @@ import tv.danmaku.ijk.media.player.R;
 
 public class AndroidMediaController extends FrameLayout implements IMediaController {
     private ActionBar mActionBar;
+    private Window mWin;
 
     private MediaController.MediaPlayerControl mPlayer;
     private Context mContext;
@@ -64,6 +68,7 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
     private Runnable mLastSeekBarRunnable;
     private boolean mDisableProgress = false;
     private boolean isLock;
+    private boolean isFullscreenMode;
 
     public AndroidMediaController(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -107,6 +112,8 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
         show(sDefaultTimeout);
         if (mActionBar != null)
             mActionBar.show();
+        if (mWin != null && isFullscreenMode)
+            mWin.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
     }
 
     @Override
@@ -114,6 +121,8 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
         hideInternal();
         if (mActionBar != null)
             mActionBar.hide();
+        if (mWin != null && isFullscreenMode)
+            mWin.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         for (View view : mShowOnceArray)
             view.setVisibility(View.GONE);
         mShowOnceArray.clear();
@@ -135,6 +144,8 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
     private boolean initController(Context context) {
         mContext = context.getApplicationContext();
         mAM = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
+        if (context instanceof Activity)
+            mWin = ((Activity) context).getWindow();
         return true;
     }
 
@@ -484,6 +495,13 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
     }
 
     public void onFullscreenChanged(boolean fullscreen) {
+        isFullscreenMode = fullscreen;
+        if (mWin != null) {
+            if (fullscreen)
+                mWin.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            else
+                mWin.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        }
         hide();
         if (mFullscreen != null)
             mFullscreen.setImageResource(fullscreen ? R.drawable.ic_fullscreen_exit : R.drawable.ic_fullscreen);

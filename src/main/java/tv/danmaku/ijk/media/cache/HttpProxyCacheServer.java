@@ -15,7 +15,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import tv.danmaku.ijk.media.cache.file.DiskUsage;
 import tv.danmaku.ijk.media.cache.file.FileNameGenerator;
@@ -55,7 +57,12 @@ public class HttpProxyCacheServer {
     private static final String PROXY_HOST = "127.0.0.1";
 
     private final Object clientsLock = new Object();
-    private final ExecutorService socketProcessor = Executors.newFixedThreadPool(8);
+    private final ExecutorService socketProcessor = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60, TimeUnit.SECONDS,
+            new SynchronousQueue<>(), runnable -> {
+        Thread result = new Thread(runnable, TAG);
+        result.setDaemon(false);
+        return result;
+    });
     private final Map<String, HttpProxyCacheServerClients> clientsMap = new ConcurrentHashMap<>();
     private final ServerSocket serverSocket;
     private final int port;
@@ -179,8 +186,17 @@ public class HttpProxyCacheServer {
         }
     }
 
+    public void reset() {
+        isAlive = null;
+        socketProcessor.submit(HttpUtil::evictAll);
+    }
+
+    private volatile Boolean isAlive;
+
     private boolean isAlive() {
-        return pinger.ping(3, 70);   // 70+140+280=max~500ms
+        if (isAlive == null)
+            isAlive = pinger.ping(3, 70);
+        return isAlive;   // 70+140+280=max~500ms
     }
 
     private String appendToProxyUrl(String url) {

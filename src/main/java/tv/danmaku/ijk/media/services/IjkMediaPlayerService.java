@@ -163,6 +163,7 @@ public class IjkMediaPlayerService extends Service {
         @Override
         public void release() throws RemoteException {
             handler.post(() -> {
+                Holder.holder.reset();
                 mMediaPlayer.release();
                 mMediaPlayer = null;
                 if (surface != null) {
