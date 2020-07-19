@@ -34,6 +34,7 @@ import java.util.Map;
 import tv.danmaku.ijk.media.player.AVOptions;
 import tv.danmaku.ijk.media.player.IIjkMediaPlayer;
 import tv.danmaku.ijk.media.player.IMediaPlayer;
+import tv.danmaku.ijk.media.player.IPCTextureMediaPlayer;
 import tv.danmaku.ijk.media.player.IPlayCallback;
 import tv.danmaku.ijk.media.player.IPlayerFactory;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
@@ -964,6 +965,11 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
 
     public void initPlayer() {
         try {
+            if (isMediaCodecEnable) {
+                mMediaPlayer = new IPCTextureMediaPlayer(mMediaPlayer);
+                mMediaPlayer._setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-all-videos", 1);
+            }
+
             String realPath = mUri.toString();
             if (cacheEnable && isProxyCacheMode) {
                 realPath = "ijkhttphook:" + realPath;
@@ -1038,6 +1044,8 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
     private void setScreenOnWhilePlaying(boolean screenOn) {
         if (mSurfaceHolder != null && mSurfaceHolder.getSurfaceHolder() != null)
             mSurfaceHolder.getSurfaceHolder().setKeepScreenOn(screenOn);
+        else if (mSurfaceHolder != null)
+            mSurfaceHolder.getRenderView().getView().setKeepScreenOn(screenOn);
     }
 
     private boolean cacheEnable;
@@ -1055,6 +1063,16 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
 
     public void setBufferingIndicator(View bufferingIndicator) {
         this.bufferingIndicator = bufferingIndicator;
+    }
+
+    private boolean isMediaCodecEnable = false;
+
+    public void setMediaCodecEnable(boolean flag) {
+        if (isMediaCodecEnable == flag)
+            return;
+
+        isMediaCodecEnable = flag;
+        setRender(isMediaCodecEnable ? RENDER_TEXTURE_VIEW : RENDER_SURFACE_VIEW);
     }
 
     public interface OnPreparedListener {
