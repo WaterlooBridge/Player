@@ -83,6 +83,7 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
     private VideoControlHelper mControlHelper;
     private OnCompletionListener mOnCompletionListener;
     private OnPreparedListener mOnPreparedListener;
+    private OnBufferingUpdateListener mOnBufferingUpdateListener;
     private int mCurrentBufferPercentage;
     private OnErrorListener mOnErrorListener;
     private OnInfoListener mOnInfoListener;
@@ -110,7 +111,7 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
     private long mSeekStartTime = 0;
     private long mSeekEndTime = 0;
 
-    private TextView subtitleDisplay;
+    private Runnable releaseRetry;
 
     public IPCVideoView(Context context) {
         super(context);
@@ -153,15 +154,6 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
         // REMOVED: mPendingSubtitleTracks = new Vector<Pair<InputStream, MediaFormat>>();
         mCurrentState = STATE_IDLE;
         mTargetState = STATE_IDLE;
-
-        subtitleDisplay = new TextView(context);
-        subtitleDisplay.setTextSize(24);
-        subtitleDisplay.setGravity(Gravity.CENTER);
-        LayoutParams layoutParams_txt = new LayoutParams(
-                LayoutParams.MATCH_PARENT,
-                LayoutParams.WRAP_CONTENT,
-                Gravity.BOTTOM);
-        addView(subtitleDisplay, layoutParams_txt);
     }
 
     public void setRenderView(IRenderView renderView) {
@@ -550,6 +542,8 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
             new OnBufferingUpdateListener() {
                 public void onBufferingUpdate(IIjkMediaPlayer mp, int percent) {
                     mCurrentBufferPercentage = percent;
+                    if (mOnBufferingUpdateListener != null)
+                        mOnBufferingUpdateListener.onBufferingUpdate(mp, percent);
                 }
             };
 
@@ -595,6 +589,10 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
      */
     public void setOnInfoListener(OnInfoListener l) {
         mOnInfoListener = l;
+    }
+
+    public void setOnBufferingUpdateListener(OnBufferingUpdateListener l) {
+        mOnBufferingUpdateListener = l;
     }
 
     // REMOVED: mSHCallback
@@ -691,6 +689,8 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
             }
             AudioManager am = (AudioManager) mAppContext.getSystemService(Context.AUDIO_SERVICE);
             am.abandonAudioFocus(null);
+        } else {
+            releaseRetry = () -> release(cleartargetstate);
         }
     }
 
@@ -959,7 +959,12 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
     public void createPlayer() {
         PlayerServiceManager.getInstance(getContext()).createPlayer(player -> {
             mMediaPlayer = player;
-            initPlayer();
+            if (releaseRetry != null) {
+                releaseRetry.run();
+                releaseRetry = null;
+            } else {
+                initPlayer();
+            }
         });
     }
 
