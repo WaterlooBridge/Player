@@ -957,6 +957,7 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
     }
 
     public void createPlayer() {
+        releaseRetry = null;
         PlayerServiceManager.getInstance(getContext()).createPlayer(player -> {
             mMediaPlayer = player;
             if (releaseRetry != null) {
