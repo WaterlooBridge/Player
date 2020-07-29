@@ -163,7 +163,7 @@ public class IjkMediaPlayerService extends Service {
         @Override
         public void release() throws RemoteException {
             handler.post(() -> {
-                Holder.holder.reset();
+//                Holder.holder.reset();
                 mMediaPlayer.release();
                 mMediaPlayer = null;
                 if (surface != null) {
@@ -257,7 +257,8 @@ public class IjkMediaPlayerService extends Service {
 
         private IjkMediaPlayer createPlayer() {
             IjkMediaPlayer ijkMediaPlayer = new IjkMediaPlayer();
-            ijkMediaPlayer.native_setLogLevel(IjkMediaPlayer.IJK_LOG_DEBUG);
+            if (IPCPlayerControl.logLevel != IjkMediaPlayer.IJK_LOG_UNKNOWN)
+                IjkMediaPlayer.native_setLogLevel(IPCPlayerControl.logLevel);
             return ijkMediaPlayer;
         }
     }

@@ -39,6 +39,7 @@ import tv.danmaku.ijk.media.player.IPlayCallback;
 import tv.danmaku.ijk.media.player.IPlayerFactory;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 import tv.danmaku.ijk.media.player.R;
+import tv.danmaku.ijk.media.services.IPCPlayerControl;
 import tv.danmaku.ijk.media.services.PlayerServiceManager;
 
 /**
@@ -984,7 +985,7 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
             } else if (cacheEnable) {
                 realPath = "ijkio:cache:ffio:" + realPath;
                 if (getContext().getExternalCacheDir() != null) {
-                    String basicPath = getContext().getExternalCacheDir().getPath() + "/ijkiocache/";
+                    String basicPath = getContext().getExternalCacheDir().getPath() + IPCPlayerControl.IJK_CACHE_DIR;
                     new File(basicPath).mkdirs();
                     String fileName = URLEncoder.encode(mUri.toString());
                     if (fileName.length() > 200)
