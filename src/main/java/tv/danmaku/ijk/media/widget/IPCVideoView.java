@@ -31,6 +31,7 @@ import java.net.URLEncoder;
 import java.util.Locale;
 import java.util.Map;
 
+import tv.danmaku.ijk.media.cache.ProxyCacheUtils;
 import tv.danmaku.ijk.media.player.AVOptions;
 import tv.danmaku.ijk.media.player.IIjkMediaPlayer;
 import tv.danmaku.ijk.media.player.IMediaPlayer;
@@ -985,15 +986,10 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
             } else if (cacheEnable) {
                 realPath = "ijkio:cache:ffio:" + realPath;
                 if (getContext().getExternalCacheDir() != null) {
-                    String basicPath = getContext().getExternalCacheDir().getPath() + IPCPlayerControl.IJK_CACHE_DIR;
+                    String basicPath = getContext().getExternalCacheDir().getPath() + IPCPlayerControl.IJK_CACHE_DIR + ProxyCacheUtils.computeMD5(mUri.toString());
                     new File(basicPath).mkdirs();
-                    String fileName = URLEncoder.encode(mUri.toString());
-                    if (fileName.length() > 200)
-                        fileName = fileName.substring(0, 200);
-                    mMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "cache_file_path", basicPath + fileName + ".tmp");
-                    mMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "cache_map_path", basicPath + fileName + "2.tmp");
-                    mMediaPlayer._setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "parse_cache_map", 1);
-                    mMediaPlayer._setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "auto_save_map", 1);
+                    mMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "cache_file_path", basicPath);
+                    mMediaPlayer._setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "hls_io_protocol_enable", 1);
                 }
             }
             mMediaPlayer._setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "reconnect", 1);
@@ -1062,6 +1058,7 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
         cacheEnable = flag;
     }
 
+    @Deprecated
     public void setProxyCacheMode(boolean flag) {
         isProxyCacheMode = flag;
     }

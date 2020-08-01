@@ -35,14 +35,34 @@ public class IPCPlayerControl {
 
     private static boolean deleteDir(File dir) {
         if (dir.isDirectory()) {
-            String[] children = dir.list();
+            File[] children = dir.listFiles();
             if (children != null)
-                for (String child : children) {
-                    boolean success = deleteDir(new File(dir, child));
+                for (File child : children) {
+                    boolean success = deleteDir(child);
                     if (!success)
                         return false;
                 }
         }
         return dir.delete();
+    }
+
+    public static long getCacheSize(Context context) {
+        if (context.getExternalCacheDir() == null)
+            return 0;
+        String basicPath = context.getExternalCacheDir().getPath() + IPCPlayerControl.IJK_CACHE_DIR;
+        return getFolderSize(new File(basicPath));
+    }
+
+    private static long getFolderSize(File dir) {
+        long size = 0;
+        File[] children = dir.listFiles();
+        if (children != null)
+            for (File child : children) {
+                if (child.isDirectory())
+                    size += getFolderSize(child);
+                else
+                    size += child.length();
+            }
+        return size;
     }
 }
