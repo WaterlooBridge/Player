@@ -13,6 +13,9 @@ android {
     defaultConfig {
         minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.targetSdkVersion
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a'
+        }
     }
     buildTypes {
         release {
@@ -24,11 +27,16 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    externalNativeBuild {
+        cmake {
+            path 'src/main/CMakeLists.txt'
+        }
+    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation "androidx.appcompat:appcompat:$rootProject.appcompatLibraryVersion"
-    implementation 'com.squareup.okhttp3:okhttp:3.12.8'
-//    compile 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.8'
+    implementation "androidx.appcompat:appcompat:$appcompatLibraryVersion"
+    implementation "com.squareup.okhttp3:okhttp:$okhttpLibraryVersion"
 }
