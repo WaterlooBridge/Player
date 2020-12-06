@@ -137,6 +137,11 @@ public class IPCTextureMediaPlayer implements IIjkMediaPlayer, ISurfaceTextureHo
     }
 
     @Override
+    public void setSpeed(float speed) throws RemoteException {
+        mMediaPlayer.setSpeed(speed);
+    }
+
+    @Override
     public void registerCallback(IPlayCallback callback) throws RemoteException {
         mMediaPlayer.registerCallback(callback);
     }

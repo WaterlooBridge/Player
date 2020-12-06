@@ -54,5 +54,7 @@ interface IIjkMediaPlayer {
 
     int getVideoSarDen();
 
+    void setSpeed(float speed);
+
     void registerCallback(IPlayCallback callback);
 }

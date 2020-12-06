@@ -199,6 +199,11 @@ public class IjkMediaPlayerService extends Service {
         }
 
         @Override
+        public void setSpeed(float speed) throws RemoteException {
+            mMediaPlayer.setSpeed(speed);
+        }
+
+        @Override
         public void registerCallback(IPlayCallback callback) throws RemoteException {
             handler.post(() -> {
                 mMediaPlayer.setOnPreparedListener(mp -> {

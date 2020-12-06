@@ -1079,6 +1079,16 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
         setRender(isMediaCodecEnable ? RENDER_TEXTURE_VIEW : RENDER_SURFACE_VIEW);
     }
 
+    public void setSpeed(float speed) {
+        if (mMediaPlayer == null)
+            return;
+        try {
+            mMediaPlayer.setSpeed(speed);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
     public interface OnPreparedListener {
         void onPrepared(IIjkMediaPlayer mp);
     }
