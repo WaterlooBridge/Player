@@ -691,8 +691,9 @@ static int ijkio_cache_open(IjkURLContext *h, const char *url, int flags, IjkAVD
     }
 
     t = ijk_av_dict_get(*options, "cache_file_forwards_capacity", NULL, IJK_AV_DICT_MATCH_CASE);
-    if (t) {
+    if (t && !h->ijkio_app_ctx->cache_file_forwards_capacity) {
         c->cache_file_forwards_capacity = strtoll(t->value, NULL, 10);
+        h->ijkio_app_ctx->cache_file_forwards_capacity = c->cache_file_forwards_capacity;
     }
 
     t = ijk_av_dict_get(*options, "cache_file_close", NULL, IJK_AV_DICT_MATCH_CASE);

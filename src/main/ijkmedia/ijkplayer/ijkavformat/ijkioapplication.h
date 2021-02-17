@@ -49,7 +49,7 @@ struct IjkIOApplicationContext {
     IjkThreadPoolContext *threadpool_ctx;
     IjkAVIOInterruptCB *ijkio_interrupt_callback;
     char cache_file_path[CACHE_FILE_PATH_MAX_LEN];
-    int64_t last_physical_pos;
+    int64_t cache_file_forwards_capacity;
     void *cache_info_map;
     void *opaque;
     int64_t cache_count_bytes;
