@@ -153,9 +153,9 @@ int ijk_av_dict_set_int(IjkAVDictionary **pm, const char *key, int64_t value,
     return ijk_av_dict_set(pm, key, valuestr, flags);
 }
 
-int ijk_av_dict_set_intptr(IjkAVDictionary **pm, const char *key, uintptr_t value, int flags) {
+int ijk_av_dict_set_intptr(IjkAVDictionary **pm, const char *key, void *value, int flags) {
     char valuestr[22];
-    snprintf(valuestr, sizeof(valuestr), "%"PRIxPTR, value);
+    snprintf(valuestr, sizeof(valuestr), "%p", value);
     flags &= ~IJK_AV_DICT_DONT_STRDUP_VAL;
     return ijk_av_dict_set(pm, key, valuestr, flags);
 }
@@ -163,7 +163,7 @@ int ijk_av_dict_set_intptr(IjkAVDictionary **pm, const char *key, uintptr_t valu
 uintptr_t ijk_av_dict_strtoptr(char *value) {
     uintptr_t ptr;
     char *next = NULL;
-    if(value[0] !='0' || (value[1]|0x20)!='x') {
+    if (value[0] != '0' || (value[1] | 0x20) != 'x') {
         return 0;
     }
     ptr = strtoll(value, &next, 16);

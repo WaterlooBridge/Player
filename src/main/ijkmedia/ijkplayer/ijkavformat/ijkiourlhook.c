@@ -174,7 +174,7 @@ static int ijkio_urlhook_init(IjkURLContext *h, const char *arg, int flags, IjkA
     if (options)
         ijk_av_dict_copy(&c->inner_options, *options, 0);
 
-    ijk_av_dict_set_intptr(&c->inner_options, "ijkapplication", (uintptr_t)c->app_ctx, 0);
+    ijk_av_dict_set_intptr(&c->inner_options, "ijkapplication", c->app_ctx, 0);
     ijk_av_dict_set_int(&c->inner_options, "ijkinject-segment-index", c->segment_index, 0);
 
     c->app_io_ctrl.size = sizeof(c->app_io_ctrl);
