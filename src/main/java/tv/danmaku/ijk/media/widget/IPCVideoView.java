@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.RemoteException;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
@@ -254,7 +255,7 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
      *                "android-allow-cross-domain-redirect" as the key and "0" or "1" as the value
      *                to disallow or allow cross domain redirection.
      */
-    private void setVideoURI(Uri uri, Map<String, String> headers) {
+    public void setVideoURI(Uri uri, Map<String, String> headers) {
         mUri = uri;
         mHeaders = headers;
         mSeekWhenPrepared = 0;
@@ -1004,6 +1005,19 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
                         mMediaPlayer._setOption(o.category, o.name, o._value);
                     else
                         mMediaPlayer.setOption(o.category, o.name, o.value);
+            }
+            if (mHeaders != null && !mHeaders.isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                for (Map.Entry<String, String> entry : mHeaders.entrySet()) {
+                    sb.append(entry.getKey());
+                    sb.append(":");
+                    String value = entry.getValue();
+                    if (!TextUtils.isEmpty(value))
+                        sb.append(entry.getValue());
+                    sb.append("\r\n");
+                    mMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "headers", sb.toString());
+                    mMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "protocol_whitelist", "async,cache,crypto,file,http,https,ijkhttphook,ijkinject,ijklivehook,ijklongurl,ijksegment,ijktcphook,pipe,rtp,tcp,tls,udp,ijkurlhook,data");
+                }
             }
 
             mMediaPlayer.registerCallback(new IPlayCallbackStub(this));
