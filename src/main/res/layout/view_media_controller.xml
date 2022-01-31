@@ -3,14 +3,15 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="#40000000"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:paddingStart="10dp"
+    android:paddingEnd="10dp">
 
     <ImageButton
         android:id="@+id/controller_stop_play"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:layout_marginLeft="5dp"
         android:background="@android:color/transparent"
         android:src="@android:drawable/ic_media_play" />
 
@@ -20,8 +21,8 @@
         android:layout_height="match_parent"
         android:layout_gravity="center_horizontal"
         android:gravity="center_vertical"
-        android:paddingEnd="4dip"
         android:paddingStart="4dip"
+        android:paddingEnd="4dip"
         android:textColor="@android:color/white"
         android:textSize="14sp"
         android:textStyle="bold" />
@@ -39,17 +40,10 @@
         android:layout_height="match_parent"
         android:layout_gravity="center_horizontal"
         android:gravity="center_vertical"
-        android:paddingEnd="4dip"
         android:paddingStart="4dip"
+        android:paddingEnd="4dip"
         android:textColor="@android:color/white"
         android:textSize="14sp"
         android:textStyle="bold" />
 
-    <ImageView
-        android:id="@+id/full_screen_image"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:layout_marginRight="5dp"
-        android:src="@drawable/ic_fullscreen" />
 </LinearLayout>

@@ -1,23 +1,17 @@
 package tv.danmaku.ijk.media.widget;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.media.AudioManager;
 import android.os.Handler;
-import android.os.Message;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.MediaController;
 import android.widget.PopupWindow;
 import android.widget.SeekBar;
@@ -38,7 +32,6 @@ import tv.danmaku.ijk.media.player.R;
 
 public class AndroidMediaController extends FrameLayout implements IMediaController {
     private ActionBar mActionBar;
-    private Window mWin;
 
     private MediaController.MediaPlayerControl mPlayer;
     private Context mContext;
@@ -48,7 +41,6 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
     private View mRoot;
     private SeekBar mProgress;
     private TextView mEndTime, mCurrentTime;
-    private ImageView mFullscreen;
     private long mDuration;
     private boolean mShowing;
     private boolean mDragging;
@@ -56,19 +48,16 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
     private static int sDefaultTimeout = 3000;
     private static final int SEEK_TO_POST_DELAY_MILLIS = 200;
 
-    private static final int FADE_OUT = 1;
-    private static final int SHOW_PROGRESS = 2;
     private boolean mFromXml = false;
     private ImageButton mPauseButton;
 
-    private static int IC_MEDIA_PAUSE_ID = Resources.getSystem().getIdentifier("ic_media_pause", "drawable", "android");
-    private static int IC_MEDIA_PLAY_ID = Resources.getSystem().getIdentifier("ic_media_play", "drawable", "android");
+    protected int mMediaPlayRes = Resources.getSystem().getIdentifier("ic_media_play", "drawable", "android");
+    protected int mMediaPauseRes = Resources.getSystem().getIdentifier("ic_media_pause", "drawable", "android");
 
     private AudioManager mAM;
     private Runnable mLastSeekBarRunnable;
     private boolean mDisableProgress = false;
     private boolean isLock;
-    private boolean isFullscreenMode;
 
     public AndroidMediaController(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -90,6 +79,8 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
 
     public void setSupportActionBar(@Nullable ActionBar actionBar) {
         mActionBar = actionBar;
+        if (actionBar == null)
+            return;
         if (isShowing()) {
             actionBar.show();
         } else {
@@ -112,8 +103,6 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
         show(sDefaultTimeout);
         if (mActionBar != null)
             mActionBar.show();
-        if (mWin != null && isFullscreenMode)
-            mWin.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
     }
 
     @Override
@@ -121,14 +110,12 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
         hideInternal();
         if (mActionBar != null)
             mActionBar.hide();
-        if (mWin != null && isFullscreenMode)
-            mWin.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         for (View view : mShowOnceArray)
             view.setVisibility(View.GONE);
         mShowOnceArray.clear();
     }
 
-    private ArrayList<View> mShowOnceArray = new ArrayList<View>();
+    private final ArrayList<View> mShowOnceArray = new ArrayList<>();
 
     public void showOnce(@NonNull View view) {
         mShowOnceArray.add(view);
@@ -136,16 +123,9 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
         show();
     }
 
-    public void refreshProgress() {
-        mProgress.setProgress(1000);
-        mCurrentTime.setText(generateTime(mDuration));
-    }
-
     private boolean initController(Context context) {
         mContext = context.getApplicationContext();
         mAM = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
-        if (context instanceof Activity)
-            mWin = ((Activity) context).getWindow();
         return true;
     }
 
@@ -164,9 +144,13 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
         mAnimStyle = android.R.style.Animation;
     }
 
+    protected int getControllerLayoutId() {
+        return R.layout.view_media_controller;
+    }
+
     protected View makeControllerView() {
         return ((LayoutInflater) mContext
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.view_media_controller, this);
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(getControllerLayoutId(), this);
     }
 
     private void initControllerView(View v) {
@@ -186,9 +170,11 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
 
         mEndTime = (TextView) v.findViewById(R.id.controller_end_time);
         mCurrentTime = (TextView) v.findViewById(R.id.controller_current_time);
-        mFullscreen = (ImageView) v.findViewById(R.id.full_screen_image);
-        if (mFullscreenClickListener != null)
-            mFullscreen.setOnClickListener(mFullscreenClickListener);
+
+        onViewCreated(v);
+    }
+
+    protected void onViewCreated(@NonNull View view) {
     }
 
     public void setInstantSeeking(boolean seekWhenDragging) {
@@ -209,7 +195,7 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
 
 
     public interface OnShownListener {
-        public void onShown();
+        void onShown();
     }
 
     private OnShownListener mShownListener;
@@ -219,7 +205,7 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
     }
 
     public interface OnHiddenListener {
-        public void onHidden();
+        void onHidden();
     }
 
     private OnHiddenListener mHiddenListener;
@@ -228,33 +214,24 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
         mHiddenListener = l;
     }
 
-    private OnClickListener mFullscreenClickListener;
+    private final Handler mHandler = new Handler();
 
-    public void setOnFullscreenClickListener(OnClickListener l) {
-        mFullscreenClickListener = l;
-        if (mFullscreen != null)
-            mFullscreen.setOnClickListener(l);
-    }
-
-    @SuppressLint("HandlerLeak")
-    private Handler mHandler = new Handler() {
+    private final Runnable mFadeOut = new Runnable() {
         @Override
-        public void handleMessage(Message msg) {
-            long pos;
-            switch (msg.what) {
-                case FADE_OUT:
-                    hide();
-                    break;
-                case SHOW_PROGRESS:
-                    pos = setProgress();
-                    if (pos == -1) {
-                        return;
-                    }
-                    if (!mDragging && mShowing && mPlayer.isPlaying())
-                        sendMessageDelayed(obtainMessage(SHOW_PROGRESS), 1000 - (pos % 1000));
-                    updatePausePlay();
-                    break;
-            }
+        public void run() {
+            hide();
+        }
+    };
+
+    private final Runnable mShowProgress = new Runnable() {
+        @Override
+        public void run() {
+            long pos = setProgress();
+            if (pos == -1)
+                return;
+            if (!mDragging && mShowing && mPlayer.isPlaying())
+                mHandler.postDelayed(mShowProgress, 1000 - (pos % 1000));
+            updatePausePlay();
         }
     };
 
@@ -292,17 +269,27 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
         int hours = totalSeconds / 3600;
 
         if (hours > 0) {
-            return String.format(Locale.US, "%02d:%02d:%02d", hours, minutes,
-                    seconds).toString();
+            return String.format(Locale.US, "%02d:%02d:%02d", hours, minutes, seconds);
         } else {
-            return String.format(Locale.US, "%02d:%02d", minutes, seconds)
-                    .toString();
+            return String.format(Locale.US, "%02d:%02d", minutes, seconds);
         }
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        show(sDefaultTimeout);
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                show(0); // show until hide is called
+                break;
+            case MotionEvent.ACTION_UP:
+                show(sDefaultTimeout); // start timeout
+                break;
+            case MotionEvent.ACTION_CANCEL:
+                hide();
+                break;
+            default:
+                break;
+        }
         return true;
     }
 
@@ -339,7 +326,7 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
         return super.dispatchKeyEvent(event);
     }
 
-    private OnClickListener mPauseListener = new OnClickListener() {
+    private final OnClickListener mPauseListener = new OnClickListener() {
         public void onClick(View v) {
             doPauseResume();
             show(sDefaultTimeout);
@@ -351,9 +338,9 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
             return;
 
         if (mPlayer.isPlaying())
-            mPauseButton.setImageResource(IC_MEDIA_PAUSE_ID);
+            mPauseButton.setImageResource(mMediaPauseRes);
         else
-            mPauseButton.setImageResource(IC_MEDIA_PLAY_ID);
+            mPauseButton.setImageResource(mMediaPlayRes);
     }
 
     private void doPauseResume() {
@@ -364,12 +351,12 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
         updatePausePlay();
     }
 
-    private SeekBar.OnSeekBarChangeListener mSeekListener = new SeekBar.OnSeekBarChangeListener() {
+    private final SeekBar.OnSeekBarChangeListener mSeekListener = new SeekBar.OnSeekBarChangeListener() {
 
         public void onStartTrackingTouch(SeekBar bar) {
             mDragging = true;
             show(3600000);
-            mHandler.removeMessages(SHOW_PROGRESS);
+            mHandler.removeCallbacks(mShowProgress);
             if (mInstantSeeking)
                 mAM.setStreamMute(AudioManager.STREAM_MUSIC, true);
         }
@@ -400,10 +387,10 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
                 mPlayer.seekTo((int) (mDuration * bar.getProgress() / 1000));
 
             show(sDefaultTimeout);
-            mHandler.removeMessages(SHOW_PROGRESS);
+            mHandler.removeCallbacks(mShowProgress);
             mAM.setStreamMute(AudioManager.STREAM_MUSIC, false);
             mDragging = false;
-            mHandler.sendEmptyMessageDelayed(SHOW_PROGRESS, 1000);
+            mHandler.postDelayed(mShowProgress, 1000);
         }
     };
 
@@ -453,12 +440,11 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
                 mShownListener.onShown();
         }
         updatePausePlay();
-        mHandler.sendEmptyMessage(SHOW_PROGRESS);
+        mHandler.post(mShowProgress);
 
         if (timeout != 0) {
-            mHandler.removeMessages(FADE_OUT);
-            mHandler.sendMessageDelayed(mHandler.obtainMessage(FADE_OUT),
-                    timeout);
+            mHandler.removeCallbacks(mFadeOut);
+            mHandler.postDelayed(mFadeOut, timeout);
         }
     }
 
@@ -470,7 +456,7 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
     public void hideInternal() {
         if (mShowing) {
             try {
-                mHandler.removeMessages(SHOW_PROGRESS);
+                mHandler.removeCallbacks(mShowProgress);
                 if (mFromXml)
                     setVisibility(View.GONE);
                 else
@@ -492,19 +478,6 @@ public class AndroidMediaController extends FrameLayout implements IMediaControl
             mProgress.setEnabled(enabled);
         disableUnsupportedButtons();
         super.setEnabled(enabled);
-    }
-
-    public void onFullscreenChanged(boolean fullscreen) {
-        isFullscreenMode = fullscreen;
-        if (mWin != null) {
-            if (fullscreen)
-                mWin.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-            else
-                mWin.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        }
-        hide();
-        if (mFullscreen != null)
-            mFullscreen.setImageResource(fullscreen ? R.drawable.ic_fullscreen_exit : R.drawable.ic_fullscreen);
     }
 
     public void release() {
