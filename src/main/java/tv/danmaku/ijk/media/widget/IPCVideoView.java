@@ -1,6 +1,7 @@
 package tv.danmaku.ijk.media.widget;
 
 import android.annotation.TargetApi;
+import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -19,16 +20,14 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.MediaController;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
-import java.net.URLEncoder;
 import java.util.Locale;
 import java.util.Map;
 
@@ -521,7 +520,7 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
                             messageId = R.string.VideoView_error_text_unknown;
                         }
 
-                        new AlertDialog.Builder(getContext())
+                        AlertDialog dialog = new AlertDialog.Builder(getContext())
                                 .setMessage(messageId)
                                 .setPositiveButton(R.string.VideoView_error_button,
                                         new DialogInterface.OnClickListener() {
@@ -535,7 +534,10 @@ public class IPCVideoView extends FrameLayout implements MediaController.MediaPl
                                             }
                                         })
                                 .setCancelable(false)
-                                .show();
+                                .create();
+                        dialog.getWindow().getAttributes().type = WindowManager.LayoutParams.TYPE_APPLICATION_PANEL;
+                        dialog.getWindow().getAttributes().token = getWindowToken();
+                        dialog.show();
                     }
                     return true;
                 }

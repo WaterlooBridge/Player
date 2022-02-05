@@ -172,6 +172,7 @@ public class TextureRenderView extends TextureView implements IRenderView {
                 if (surfaceTexture != null) {
                     mTextureView.setSurfaceTexture(surfaceTexture);
                 } else {
+                    mSurfaceTexture = mTextureView.getSurfaceTexture();
                     textureHolder.setSurfaceTexture(mSurfaceTexture);
                     textureHolder.setSurfaceTextureHost(mTextureView.mSurfaceCallback);
                 }
