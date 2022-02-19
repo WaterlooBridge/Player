@@ -51,6 +51,8 @@ jobject J4AC_android_media_MediaCodec__createByCodecName__withCString__catchAll(
 jobject J4AC_android_media_MediaCodec__createByCodecName__withCString__asGlobalRef__catchAll(JNIEnv *env, const char *name_cstr__);
 void J4AC_android_media_MediaCodec__configure(JNIEnv *env, jobject thiz, jobject format, jobject surface, jobject crypto, jint flags);
 void J4AC_android_media_MediaCodec__configure__catchAll(JNIEnv *env, jobject thiz, jobject format, jobject surface, jobject crypto, jint flags);
+void J4AC_android_media_MediaCodec__setOutputSurface(JNIEnv *env, jobject thiz, jobject surface);
+void J4AC_android_media_MediaCodec__setOutputSurface__catchAll(JNIEnv *env, jobject thiz, jobject surface);
 jobject J4AC_android_media_MediaCodec__getOutputFormat(JNIEnv *env, jobject thiz);
 jobject J4AC_android_media_MediaCodec__getOutputFormat__catchAll(JNIEnv *env, jobject thiz);
 jobject J4AC_android_media_MediaCodec__getOutputFormat__asGlobalRef__catchAll(JNIEnv *env, jobject thiz);
@@ -104,6 +106,8 @@ int J4A_loadClass__J4AC_android_media_MediaCodec(JNIEnv *env);
 #define J4AC_MediaCodec__createByCodecName__withCString__catchAll J4AC_android_media_MediaCodec__createByCodecName__withCString__catchAll
 #define J4AC_MediaCodec__configure J4AC_android_media_MediaCodec__configure
 #define J4AC_MediaCodec__configure__catchAll J4AC_android_media_MediaCodec__configure__catchAll
+#define J4AC_MediaCodec__setOutputSurface J4AC_android_media_MediaCodec__setOutputSurface
+#define J4AC_MediaCodec__setOutputSurface__catchAll J4AC_android_media_MediaCodec__setOutputSurface__catchAll
 #define J4AC_MediaCodec__getOutputFormat J4AC_android_media_MediaCodec__getOutputFormat
 #define J4AC_MediaCodec__getOutputFormat__asGlobalRef__catchAll J4AC_android_media_MediaCodec__getOutputFormat__asGlobalRef__catchAll
 #define J4AC_MediaCodec__getOutputFormat__catchAll J4AC_android_media_MediaCodec__getOutputFormat__catchAll

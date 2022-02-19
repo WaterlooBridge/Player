@@ -134,6 +134,7 @@ static SDL_AMediaCodec *create_codec_l(JNIEnv *env, IJKFF_Pipenode *node)
         if (acodec) {
             strncpy(opaque->acodec_name, mcc->codec_name, sizeof(opaque->acodec_name) / sizeof(*opaque->acodec_name));
             opaque->acodec_name[sizeof(opaque->acodec_name) / sizeof(*opaque->acodec_name) - 1] = 0;
+            node->mediacodec = 1;
         }
     }
 
@@ -2083,4 +2084,9 @@ IJKFF_Pipenode *ffpipenode_create_video_decoder_from_android_mediacodec(FFPlayer
 fail:
     ffpipenode_free_p(&node);
     return NULL;
+}
+
+void ffpipenode_set_surface_form_android_mediacodec(JNIEnv *env, IJKFF_Pipenode *node, jobject surface) {
+    IJKFF_Pipenode_Opaque *opaque   = node->opaque;
+    SDL_AMediaCodec_setOutputSurface(env, opaque->acodec, surface);
 }

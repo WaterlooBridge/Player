@@ -74,6 +74,10 @@ typedef struct SDL_AMediaCodec
         jobject android_surface,
         SDL_AMediaCrypto *crypto,
         uint32_t flags);
+    sdl_amedia_status_t (*func_setOutputSurface)(
+            JNIEnv*env,
+            SDL_AMediaCodec* acodec,
+            jobject android_surface);
 
     sdl_amedia_status_t     (*func_start)(SDL_AMediaCodec* acodec);
     sdl_amedia_status_t     (*func_stop)(SDL_AMediaCodec* acodec);
@@ -107,6 +111,11 @@ sdl_amedia_status_t     SDL_AMediaCodec_configure_surface(
     jobject android_surface,
     SDL_AMediaCrypto *crypto,
     uint32_t flags);
+
+sdl_amedia_status_t     SDL_AMediaCodec_setOutputSurface(
+        JNIEnv*env,
+        SDL_AMediaCodec* acodec,
+        jobject android_surface);
 
 void                    SDL_AMediaCodec_increaseReference(SDL_AMediaCodec *acodec);
 void                    SDL_AMediaCodec_decreaseReference(SDL_AMediaCodec *acodec);

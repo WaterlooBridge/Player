@@ -90,6 +90,16 @@ sdl_amedia_status_t SDL_AMediaCodec_configure_surface(
     return ret;
 }
 
+sdl_amedia_status_t SDL_AMediaCodec_setOutputSurface(
+        JNIEnv*env,
+        SDL_AMediaCodec* acodec,
+        jobject android_surface)
+{
+    assert(acodec->func_configure_surface);
+    sdl_amedia_status_t ret = acodec->func_setOutputSurface(env, acodec, android_surface);
+    return ret;
+}
+
 void SDL_AMediaCodec_increaseReference(SDL_AMediaCodec *acodec)
 {
     assert(acodec);

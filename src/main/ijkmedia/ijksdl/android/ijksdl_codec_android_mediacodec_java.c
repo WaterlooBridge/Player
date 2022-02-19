@@ -122,6 +122,25 @@ static sdl_amedia_status_t SDL_AMediaCodecJava_configure_surface(
     return SDL_AMEDIA_OK;
 }
 
+static sdl_amedia_status_t SDL_AMediaCodecJava_setOutputSurface(
+        JNIEnv*env,
+        SDL_AMediaCodec* acodec,
+        jobject android_surface)
+{
+            SDLTRACE("%s", __func__);
+
+    SDL_AMediaCodec_Opaque *opaque = (SDL_AMediaCodec_Opaque *)acodec->opaque;
+    jobject android_media_codec  = SDL_AMediaCodecJava_getObject(env, acodec);
+    ALOGE("configure acodec:%p surface:%p", android_media_codec, android_surface);
+    J4AC_MediaCodec__setOutputSurface(env, android_media_codec, android_surface);
+    if (J4A_ExceptionCheck__catchAll(env)) {
+        return SDL_AMEDIA_ERROR_UNKNOWN;
+    }
+
+    opaque->is_input_buffer_valid = true;
+    return SDL_AMEDIA_OK;
+}
+
 static sdl_amedia_status_t SDL_AMediaCodecJava_start(SDL_AMediaCodec* acodec)
 {
     SDLTRACE("%s", __func__);
@@ -373,6 +392,7 @@ static SDL_AMediaCodec* SDL_AMediaCodecJava_init(JNIEnv *env, jobject android_me
     acodec->func_delete                 = SDL_AMediaCodecJava_delete;
     acodec->func_configure              = NULL;
     acodec->func_configure_surface      = SDL_AMediaCodecJava_configure_surface;
+    acodec->func_setOutputSurface       = SDL_AMediaCodecJava_setOutputSurface;
 
     acodec->func_start                  = SDL_AMediaCodecJava_start;
     acodec->func_stop                   = SDL_AMediaCodecJava_stop;

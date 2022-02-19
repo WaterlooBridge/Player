@@ -241,6 +241,41 @@ int ffpipeline_set_surface(JNIEnv *env, IJKFF_Pipeline* pipeline, jobject surfac
     return 0;
 }
 
+int ffpipeline_set_surface_mediacodec(JNIEnv *env, FFPlayer *ffp, jobject surface)
+{
+    ALOGD("%s()\n", __func__);
+    if (!check_ffpipeline(ffp->pipeline, __func__))
+        return -1;
+
+    IJKFF_Pipeline_Opaque *opaque = ffp->pipeline->opaque;
+    if (!opaque->surface_mutex)
+        return -1;
+
+    ffpipeline_lock_surface(ffp->pipeline);
+    {
+        jobject prev_surface = opaque->jsurface;
+
+        if ((surface == prev_surface) ||
+            (surface && prev_surface && (*env)->IsSameObject(env, surface, prev_surface))) {
+            // same object, no need to reconfigure
+        } else {
+            if (surface) {
+                opaque->jsurface = (*env)->NewGlobalRef(env, surface);
+            } else {
+                opaque->jsurface = NULL;
+            }
+            ffpipenode_set_surface_form_android_mediacodec(env, ffp->node_vdec, opaque->jsurface);
+
+            if (prev_surface != NULL) {
+                SDL_JNI_DeleteGlobalRefP(env, &prev_surface);
+            }
+        }
+    }
+    ffpipeline_unlock_surface(ffp->pipeline);
+
+    return 0;
+}
+
 bool ffpipeline_is_surface_need_reconfigure_l(IJKFF_Pipeline* pipeline)
 {
     if (!check_ffpipeline(pipeline, __func__))

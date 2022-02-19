@@ -37,6 +37,7 @@ typedef struct J4AC_android_media_MediaCodec {
 
     jmethodID method_createByCodecName;
     jmethodID method_configure;
+    jmethodID method_setOutputSurface;
     jmethodID method_getOutputFormat;
     jmethodID method_getInputBuffers;
     jmethodID method_dequeueInputBuffer;
@@ -352,6 +353,17 @@ void J4AC_android_media_MediaCodec__configure__catchAll(JNIEnv *env, jobject thi
     J4A_ExceptionCheck__catchAll(env);
 }
 
+void J4AC_android_media_MediaCodec__setOutputSurface(JNIEnv *env, jobject thiz, jobject surface)
+{
+    (*env)->CallVoidMethod(env, thiz, class_J4AC_android_media_MediaCodec.method_setOutputSurface, surface);
+}
+
+void J4AC_android_media_MediaCodec__setOutputSurface__catchAll(JNIEnv *env, jobject thiz, jobject surface)
+{
+    J4AC_android_media_MediaCodec__setOutputSurface(env, thiz, surface);
+    J4A_ExceptionCheck__catchAll(env);
+}
+
 jobject J4AC_android_media_MediaCodec__getOutputFormat(JNIEnv *env, jobject thiz)
 {
     return (*env)->CallObjectMethod(env, thiz, class_J4AC_android_media_MediaCodec.method_getOutputFormat);
@@ -558,6 +570,11 @@ int J4A_loadClass__J4AC_android_media_MediaCodec(JNIEnv *env)
     class_J4AC_android_media_MediaCodec.method_configure = J4A_GetMethodID__catchAll(env, class_id, name, sign);
     if (class_J4AC_android_media_MediaCodec.method_configure == NULL)
         goto fail;
+
+    class_id = class_J4AC_android_media_MediaCodec.id;
+    name     = "setOutputSurface";
+    sign     = "(Landroid/view/Surface;)V";
+    class_J4AC_android_media_MediaCodec.method_setOutputSurface = J4A_GetMethodID__catchAll(env, class_id, name, sign);
 
     class_id = class_J4AC_android_media_MediaCodec.id;
     name     = "getOutputFormat";

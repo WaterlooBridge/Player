@@ -24,6 +24,7 @@
 #ifndef FFPLAY__FF_FFPIPENODE_ANDROID_MEDIACODEC_VDEC_H
 #define FFPLAY__FF_FFPIPENODE_ANDROID_MEDIACODEC_VDEC_H
 
+#include <jni.h>
 #include "../../ff_ffpipenode.h"
 #include "../../ff_ffpipeline.h"
 #include "ijksdl/ijksdl_vout.h"
@@ -33,5 +34,6 @@ typedef struct FFPlayer FFPlayer;
 IJKFF_Pipenode *ffpipenode_create_video_decoder_from_android_mediacodec(FFPlayer *ffp, IJKFF_Pipeline *pipeline, SDL_Vout *vout);
 IJKFF_Pipenode *ffpipenode_init_decoder_from_android_mediacodec(FFPlayer *ffp, IJKFF_Pipeline *pipeline, SDL_Vout *vout);
 int ffpipenode_config_from_android_mediacodec(FFPlayer *ffp, IJKFF_Pipeline *pipeline, SDL_Vout *vout, IJKFF_Pipenode *node);
+void ffpipenode_set_surface_form_android_mediacodec(JNIEnv *env, IJKFF_Pipenode *node, jobject surface);
 
 #endif

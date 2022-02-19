@@ -18,6 +18,7 @@ import tv.danmaku.ijk.media.cache.HttpProxyCacheServer;
 import tv.danmaku.ijk.media.player.IIjkMediaPlayer;
 import tv.danmaku.ijk.media.player.IPlayCallback;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
+import tv.danmaku.ijk.media.video.DummySurface;
 
 public class IjkMediaPlayerService extends Service {
 
@@ -45,6 +46,9 @@ public class IjkMediaPlayerService extends Service {
         private Handler handler;
         private Surface surface;
 
+        private boolean mediacodec;
+        private DummySurface dummySurface;
+
         public IjkMediaPlayerStub() {
             mMediaPlayer = createPlayer();
             handler = new Handler(Looper.getMainLooper());
@@ -53,7 +57,13 @@ public class IjkMediaPlayerService extends Service {
         @Override
         public void setSurface(Surface surface) throws RemoteException {
             this.surface = surface;
-            handler.post(() -> mMediaPlayer.setSurface(surface));
+            if (surface == null && mediacodec) {
+                if (dummySurface == null)
+                    dummySurface = DummySurface.newInstanceV17(context, false);
+                surface = dummySurface;
+            }
+            Surface finalSurface = surface;
+            handler.post(() -> mMediaPlayer.setSurface(finalSurface));
         }
 
         @Override
@@ -63,6 +73,8 @@ public class IjkMediaPlayerService extends Service {
 
         @Override
         public void _setOption(int category, String name, long value) throws RemoteException {
+            if ("mediacodec-all-videos".equals(name))
+                mediacodec = value == 1;
             handler.post(() -> mMediaPlayer.setOption(category, name, value));
         }
 
@@ -166,6 +178,10 @@ public class IjkMediaPlayerService extends Service {
 //                Holder.holder.reset();
                 mMediaPlayer.release();
                 mMediaPlayer = null;
+                if (dummySurface != null) {
+                    dummySurface.release();
+                    dummySurface = null;
+                }
                 if (surface != null) {
                     surface.release();
                     surface = null;
