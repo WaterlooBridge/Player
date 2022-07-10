@@ -27,16 +27,13 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-
-    externalNativeBuild {
-        cmake {
-            path 'src/main/CMakeLists.txt'
-        }
-    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "androidx.appcompat:appcompat:$appcompatLibraryVersion"
-    implementation "com.squareup.okhttp3:okhttp:$okhttpLibraryVersion"
+    api "androidx.media3:media3-exoplayer:$media3LibraryVersion"
+    api "androidx.media3:media3-exoplayer-hls:$media3LibraryVersion"
+    api "androidx.media3:media3-datasource-okhttp:$media3LibraryVersion"
+    api "androidx.media3:media3-ui:$media3LibraryVersion"
 }
