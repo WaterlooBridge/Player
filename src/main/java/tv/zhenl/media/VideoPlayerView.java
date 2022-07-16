@@ -4,17 +4,17 @@ import android.content.Context;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.view.View;
+import android.view.MotionEvent;
+import android.view.Window;
 
 import androidx.annotation.Nullable;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.Player;
-import androidx.media3.database.ExoDatabaseProvider;
 import androidx.media3.datasource.cache.CacheDataSource;
-import androidx.media3.datasource.cache.NoOpCacheEvictor;
 import androidx.media3.datasource.cache.SimpleCache;
 import androidx.media3.datasource.okhttp.OkHttpDataSource;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.hls.HlsExtractorFactoryHelper;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 import androidx.media3.exoplayer.source.MediaSource;
 import androidx.media3.ui.PlayerView;
@@ -23,17 +23,22 @@ import java.util.Map;
 
 import okhttp3.OkHttpClient;
 import okhttp3.internal.connection.RealCall;
-import tv.danmaku.ijk.media.player.R;
 
 /**
  * Created by lin on 2022/7/10.
  */
 public class VideoPlayerView extends PlayerView {
 
+    static {
+        HlsExtractorFactoryHelper.replaceDefaultHlsExtractorFactory();
+    }
+
     private ExoPlayer mMediaPlayer;
 
     private OkHttpClient mClient;
     private String mUserAgent;
+
+    private VideoControlHelper mControlHelper;
 
     public VideoPlayerView(Context context) {
         this(context, null);
@@ -84,9 +89,8 @@ public class VideoPlayerView extends PlayerView {
         mMediaPlayer.prepare();
     }
 
-    public void setNextClickListener(OnClickListener listener) {
-        View btn = findViewById(R.id.btn_next);
-        if (btn != null) btn.setOnClickListener(listener);
+    public void attachControlHelper(Window window) {
+        mControlHelper = new VideoControlHelper(this, window);
     }
 
     public void addPlayerListener(Player.Listener listener) {
@@ -129,4 +133,16 @@ public class VideoPlayerView extends PlayerView {
         mMediaPlayer.release();
         setPlayer(null);
     }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (mControlHelper == null || !getUseController())
+            return super.onTouchEvent(event);
+
+        if (event.getAction() == MotionEvent.ACTION_UP && !mControlHelper.mChangePosition && !mControlHelper.mBrightness)
+            performClick();
+
+        return mControlHelper.onTouchEvent(event);
+    }
+
 }
