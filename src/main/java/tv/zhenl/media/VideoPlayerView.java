@@ -10,6 +10,7 @@ import android.view.Window;
 import androidx.annotation.Nullable;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.Player;
+import androidx.media3.datasource.DefaultDataSource;
 import androidx.media3.datasource.cache.CacheDataSource;
 import androidx.media3.datasource.cache.SimpleCache;
 import androidx.media3.datasource.okhttp.OkHttpDataSource;
@@ -73,11 +74,11 @@ public class VideoPlayerView extends PlayerView {
             SimpleCache cache = IPCPlayerControl.getCache(getContext());
             CacheDataSource.Factory cacheDataSourceFactory = new CacheDataSource.Factory()
                     .setCache(cache)
-                    .setUpstreamDataSourceFactory(okhttpDataSourceFactory);
+                    .setUpstreamDataSourceFactory(new DataSourceWrapper.Factory(okhttpDataSourceFactory));
 
             mediaSourceFactory = new DefaultMediaSourceFactory(cacheDataSourceFactory);
         } else {
-            mediaSourceFactory = new DefaultMediaSourceFactory(getContext());
+            mediaSourceFactory = new DefaultMediaSourceFactory(new DataSourceWrapper.Factory(new DefaultDataSource.Factory(getContext())));
         }
 
         MediaItem item = MediaItem.fromUri(uri).buildUpon().build();
@@ -91,6 +92,10 @@ public class VideoPlayerView extends PlayerView {
 
     public void attachControlHelper(Window window) {
         mControlHelper = new VideoControlHelper(this, window);
+    }
+
+    public void detachControlHelper() {
+        mControlHelper = null;
     }
 
     public void addPlayerListener(Player.Listener listener) {
@@ -139,7 +144,7 @@ public class VideoPlayerView extends PlayerView {
         if (mControlHelper == null || !getUseController())
             return super.onTouchEvent(event);
 
-        if (event.getAction() == MotionEvent.ACTION_UP && !mControlHelper.mChangePosition && !mControlHelper.mBrightness)
+        if (event.getAction() == MotionEvent.ACTION_UP && !mControlHelper.mChangePosition && !mControlHelper.mBrightness && !mControlHelper.mChangeVolume)
             performClick();
 
         return mControlHelper.onTouchEvent(event);

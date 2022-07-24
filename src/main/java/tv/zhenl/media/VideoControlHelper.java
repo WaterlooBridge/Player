@@ -1,5 +1,7 @@
 package tv.zhenl.media;
 
+import android.content.Context;
+import android.media.AudioManager;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -14,6 +16,9 @@ public class VideoControlHelper {
 
     //手指放下的位置
     protected int mDownPosition;
+
+    //手势调节音量的大小
+    protected int mGestureDownVolume;
 
     //手势偏差值
     protected int mThreshold = 80;
@@ -53,11 +58,14 @@ public class VideoControlHelper {
     //是否首次触摸
     protected boolean mFirstTouch = false;
 
+    protected AudioManager mAudioManager;
+
     private VideoPlayerView videoView;
     private Window window;
     private boolean isTouching = false;
 
     public VideoControlHelper(VideoPlayerView videoView, Window window) {
+        mAudioManager = (AudioManager) videoView.getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
         mSeekEndOffset = CommonUtil.dip2px(videoView.getContext(), 50);
         this.videoView = videoView;
         this.window = window;
@@ -105,7 +113,6 @@ public class VideoControlHelper {
     }
 
     protected void touchSurfaceMove(float deltaX, float deltaY, float y) {
-
         int curWidth = videoView.getWidth();
         int curHeight = videoView.getHeight();
 
@@ -119,6 +126,14 @@ public class VideoControlHelper {
             String seekTime = CommonUtil.stringForTime(mSeekTimePosition);
             String totalTime = CommonUtil.stringForTime(totalTimeDuration);
             showProgressDialog(deltaX, seekTime, mSeekTimePosition, totalTime, totalTimeDuration);
+        } else if (mChangeVolume) {
+            deltaY = -deltaY;
+            int max = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+            int deltaV = (int) (max * deltaY * 3 / curHeight);
+            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, mGestureDownVolume + deltaV, 0);
+            int volumePercent = (int) (mGestureDownVolume * 100 / max + deltaY * 3 * 100 / curHeight);
+
+            showVolumeDialog(-deltaY, volumePercent);
         } else if (mBrightness) {
             if (Math.abs(deltaY) > mThreshold) {
                 float percent = (-deltaY / curHeight);
@@ -129,8 +144,6 @@ public class VideoControlHelper {
     }
 
     protected void touchSurfaceMoveFullLogic(float absDeltaX, float absDeltaY) {
-
-
         int curWidth = videoView.getWidth();
 
         if (absDeltaX > mThreshold || absDeltaY > mThreshold) {
@@ -150,6 +163,7 @@ public class VideoControlHelper {
                 }
                 if (!mBrightness) {
                     mChangeVolume = noEnd;
+                    mGestureDownVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
                 }
             }
         }
@@ -159,6 +173,7 @@ public class VideoControlHelper {
     protected void touchSurfaceUp() {
         dismissProgressDialog();
         dismissBrightnessDialog();
+        dismissVolumeDialog();
         if (mChangePosition && videoView.isPlaying()) {
             videoView.seekTo(mSeekTimePosition);
         }
@@ -230,5 +245,26 @@ public class VideoControlHelper {
     protected void dismissBrightnessDialog() {
         if (mBrightnessDialog != null)
             mBrightnessDialog.setVisibility(View.GONE);
+    }
+
+    private View mVolumeDialog;
+    private TextView mVolumeDialogTv;
+
+    protected void showVolumeDialog(float deltaY, int volumePercent) {
+        if (mVolumeDialog == null) {
+            View localView = LayoutInflater.from(videoView.getContext()).inflate(R.layout.video_volume_dialog, videoView, false);
+            mVolumeDialogTv = localView.findViewById(R.id.app_video_volume);
+            videoView.addView(localView);
+            mVolumeDialog = localView;
+        }
+        if (mVolumeDialog.getVisibility() == View.GONE)
+            mVolumeDialog.setVisibility(View.VISIBLE);
+        if (mVolumeDialogTv != null)
+            mVolumeDialogTv.setText(Math.max(Math.min(volumePercent, 100), 0) + "%");
+    }
+
+    protected void dismissVolumeDialog() {
+        if (mVolumeDialog != null)
+            mVolumeDialog.setVisibility(View.GONE);
     }
 }
