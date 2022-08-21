@@ -58,6 +58,13 @@ public class VideoPlayerView extends PlayerView {
         mClient = new OkHttpClient.Builder().build();
         mMediaPlayer = new ExoPlayer.Builder(getContext()).build();
         setPlayer(mMediaPlayer);
+
+        mMediaPlayer.addListener(new Player.Listener() {
+            @Override
+            public void onIsPlayingChanged(boolean isPlaying) {
+                if (isPlaying) setKeepScreenOn(true);
+            }
+        });
     }
 
     public void setUserAgent(String userAgent) {
