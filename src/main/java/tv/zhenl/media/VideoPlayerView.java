@@ -129,6 +129,10 @@ public class VideoPlayerView extends PlayerView {
         return mMediaPlayer.isPlaying();
     }
 
+    public void setPlaybackSpeed(float speed) {
+        mMediaPlayer.setPlaybackSpeed(speed);
+    }
+
     public void start() {
         mMediaPlayer.play();
         onResume();
@@ -151,7 +155,7 @@ public class VideoPlayerView extends PlayerView {
         if (mControlHelper == null || !getUseController())
             return super.onTouchEvent(event);
 
-        if (event.getAction() == MotionEvent.ACTION_UP && !mControlHelper.mChangePosition && !mControlHelper.mBrightness && !mControlHelper.mChangeVolume)
+        if (event.getAction() == MotionEvent.ACTION_UP && !mControlHelper.isConsumed())
             performClick();
 
         return mControlHelper.onTouchEvent(event);

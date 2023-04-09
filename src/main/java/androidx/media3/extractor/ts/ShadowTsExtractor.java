@@ -437,7 +437,7 @@ public final class ShadowTsExtractor implements Extractor {
         int endOfPacket = syncBytePosition + TS_PACKET_SIZE;
         if (endOfPacket > limit) {
             bytesSinceLastSync += syncBytePosition - searchStart;
-            if (mode == MODE_HLS && bytesSinceLastSync > TS_PACKET_SIZE * 10) {
+            if (mode == MODE_HLS && bytesSinceLastSync > TS_PACKET_SIZE << 16) {
                 throw ParserException.createForMalformedContainer(
                         "Cannot find sync byte. Most likely not a Transport Stream.", /* cause= */ null);
             }

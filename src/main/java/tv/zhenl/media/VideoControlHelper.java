@@ -2,9 +2,12 @@ package tv.zhenl.media;
 
 import android.content.Context;
 import android.media.AudioManager;
+import android.os.Handler;
+import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ProgressBar;
@@ -13,6 +16,8 @@ import android.widget.TextView;
 import tv.danmaku.ijk.media.player.R;
 
 public class VideoControlHelper {
+
+    private static final int LONG_PRESS = 1;
 
     //手指放下的位置
     protected int mDownPosition;
@@ -58,6 +63,10 @@ public class VideoControlHelper {
     //是否首次触摸
     protected boolean mFirstTouch = false;
 
+    private final Handler mHandler = new GestureHandler();
+
+    private boolean mInLongPress;
+
     protected AudioManager mAudioManager;
 
     private VideoPlayerView videoView;
@@ -81,8 +90,14 @@ public class VideoControlHelper {
                 isTouching = true;
                 videoView.onTouchEvent(ev);
                 touchSurfaceDown(x, y);
+
+                mHandler.removeMessages(LONG_PRESS);
+                mHandler.sendMessageAtTime(mHandler.obtainMessage(LONG_PRESS),
+                        ev.getDownTime() + ViewConfiguration.getLongPressTimeout());
                 break;
             case MotionEvent.ACTION_MOVE:
+                if (mInLongPress) break;
+
                 float deltaX = x - mDownX;
                 float deltaY = y - mDownY;
                 float absDeltaX = Math.abs(deltaX);
@@ -92,6 +107,10 @@ public class VideoControlHelper {
                 }
                 touchSurfaceMove(deltaX, deltaY, y);
 
+                if (isConsumed()) {
+                    mHandler.removeMessages(LONG_PRESS);
+                }
+
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
@@ -100,6 +119,10 @@ public class VideoControlHelper {
                 break;
         }
         return true;
+    }
+
+    public boolean isConsumed() {
+        return mChangePosition || mBrightness || mChangeVolume || mInLongPress;
     }
 
     protected void touchSurfaceDown(float x, float y) {
@@ -176,6 +199,12 @@ public class VideoControlHelper {
         dismissVolumeDialog();
         if (mChangePosition && videoView.isPlaying()) {
             videoView.seekTo(mSeekTimePosition);
+        }
+
+        mHandler.removeMessages(LONG_PRESS);
+        if (mInLongPress) {
+            mInLongPress = false;
+            videoView.setPlaybackSpeed(1);
         }
     }
 
@@ -266,5 +295,20 @@ public class VideoControlHelper {
     protected void dismissVolumeDialog() {
         if (mVolumeDialog != null)
             mVolumeDialog.setVisibility(View.GONE);
+    }
+
+    protected void dispatchLongPress() {
+        mInLongPress = true;
+        videoView.setPlaybackSpeed(2);
+    }
+
+    private class GestureHandler extends Handler {
+
+        @Override
+        public void handleMessage(Message msg) {
+            if (msg.what == LONG_PRESS) {
+                dispatchLongPress();
+            }
+        }
     }
 }
