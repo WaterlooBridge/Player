@@ -10,6 +10,7 @@ import android.view.Window;
 import androidx.annotation.Nullable;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.Player;
+import androidx.media3.datasource.DataSource;
 import androidx.media3.datasource.DefaultDataSource;
 import androidx.media3.datasource.cache.CacheDataSource;
 import androidx.media3.datasource.cache.SimpleCache;
@@ -73,15 +74,21 @@ public class VideoPlayerView extends PlayerView {
 
     public void setVideoUri(Uri uri, Map<String, String> headers, int startPositionMs) {
         MediaSource.Factory mediaSourceFactory;
-        if (uri.toString().startsWith("http")) {
-            OkHttpDataSource.Factory okhttpDataSourceFactory = new OkHttpDataSource.Factory(request -> new RealCall(mClient, request, false));
-            if (!TextUtils.isEmpty(mUserAgent)) okhttpDataSourceFactory.setUserAgent(mUserAgent);
-            if (headers != null) okhttpDataSourceFactory.setDefaultRequestProperties(headers);
-
+        String url = uri.toString();
+        if (url.startsWith("http")) {
             SimpleCache cache = IPCPlayerControl.getCache(getContext());
             CacheDataSource.Factory cacheDataSourceFactory = new CacheDataSource.Factory()
                     .setCache(cache)
-                    .setUpstreamDataSourceFactory(new DataSourceWrapper.Factory(okhttpDataSourceFactory));
+                    .setUpstreamDataSourceFactory(buildOkHttpDataSource(headers));
+
+            mediaSourceFactory = new DefaultMediaSourceFactory(cacheDataSourceFactory);
+        } else if (url.startsWith(IPCPlayerControl.DOWNLOAD_URI_SCHEME)) {
+            url = url.replaceFirst(IPCPlayerControl.DOWNLOAD_URI_SCHEME, "");
+            uri = Uri.parse(url);
+
+            CacheDataSource.Factory cacheDataSourceFactory = new CacheDataSource.Factory()
+                    .setCache(IPCPlayerControl.downloadCache)
+                    .setUpstreamDataSourceFactory(new DataSourceWrapper.Factory(buildOkHttpDataSource(headers)));
 
             mediaSourceFactory = new DefaultMediaSourceFactory(cacheDataSourceFactory);
         } else {
@@ -95,6 +102,13 @@ public class VideoPlayerView extends PlayerView {
         else
             mMediaPlayer.setMediaSource(mediaSource, startPositionMs);
         mMediaPlayer.prepare();
+    }
+
+    private DataSource.Factory buildOkHttpDataSource(Map<String, String> headers) {
+        OkHttpDataSource.Factory okhttpDataSourceFactory = new OkHttpDataSource.Factory(request -> new RealCall(mClient, request, false));
+        if (!TextUtils.isEmpty(mUserAgent)) okhttpDataSourceFactory.setUserAgent(mUserAgent);
+        if (headers != null) okhttpDataSourceFactory.setDefaultRequestProperties(headers);
+        return new DataSourceWrapper.Factory(okhttpDataSourceFactory);
     }
 
     public void attachControlHelper(Window window) {

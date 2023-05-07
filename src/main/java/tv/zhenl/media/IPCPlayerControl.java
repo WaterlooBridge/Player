@@ -3,6 +3,7 @@ package tv.zhenl.media;
 import android.content.Context;
 
 import androidx.media3.database.ExoDatabaseProvider;
+import androidx.media3.database.StandaloneDatabaseProvider;
 import androidx.media3.datasource.cache.NoOpCacheEvictor;
 import androidx.media3.datasource.cache.SimpleCache;
 
@@ -16,12 +17,16 @@ public class IPCPlayerControl {
 
     private static final String IJK_CACHE_DIR = "/ijkiocache/";
 
+    public static final String DOWNLOAD_URI_SCHEME = "cache:";
+
     private static SimpleCache cache;
+
+    public static SimpleCache downloadCache;
 
     public static SimpleCache getCache(Context context) {
         if (cache != null)
             return cache;
-        cache = new SimpleCache(getCacheDir(context), new NoOpCacheEvictor(), new ExoDatabaseProvider(context));
+        cache = new SimpleCache(getCacheDir(context), new NoOpCacheEvictor(), new StandaloneDatabaseProvider(context));
         return cache;
     }
 
@@ -32,7 +37,7 @@ public class IPCPlayerControl {
 
     public static void clearCache(Context context) {
         if (cache != null) cache.release();
-        SimpleCache.delete(getCacheDir(context), new ExoDatabaseProvider(context));
+        SimpleCache.delete(getCacheDir(context), new StandaloneDatabaseProvider(context));
         cache = null;
     }
 

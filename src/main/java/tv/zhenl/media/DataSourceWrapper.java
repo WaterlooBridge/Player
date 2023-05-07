@@ -13,12 +13,12 @@ import java.io.IOException;
 /**
  * Created by lin on 2022/7/23.
  */
-class DataSourceWrapper implements DataSource {
+public class DataSourceWrapper implements DataSource {
 
     private static final int MAX_RETRY_COUNT = 3;
     private static final int MAX_SOURCE_ERROR_COUNT = 5;
 
-    static class Factory implements DataSource.Factory {
+    public static class Factory implements DataSource.Factory {
 
         private final DataSource.Factory delegate;
 
