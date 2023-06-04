@@ -2,9 +2,8 @@ package tv.zhenl.media;
 
 import android.content.Context;
 
-import androidx.media3.database.ExoDatabaseProvider;
 import androidx.media3.database.StandaloneDatabaseProvider;
-import androidx.media3.datasource.cache.NoOpCacheEvictor;
+import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor;
 import androidx.media3.datasource.cache.SimpleCache;
 
 import java.io.File;
@@ -26,7 +25,7 @@ public class IPCPlayerControl {
     public static SimpleCache getCache(Context context) {
         if (cache != null)
             return cache;
-        cache = new SimpleCache(getCacheDir(context), new NoOpCacheEvictor(), new StandaloneDatabaseProvider(context));
+        cache = new SimpleCache(getCacheDir(context), new LeastRecentlyUsedCacheEvictor(Integer.MAX_VALUE), new StandaloneDatabaseProvider(context));
         return cache;
     }
 
