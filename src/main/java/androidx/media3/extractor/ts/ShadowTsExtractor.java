@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.media3.common.C;
 import androidx.media3.common.ParserException;
 import androidx.media3.common.util.Assertions;
+import androidx.media3.common.util.NullableType;
 import androidx.media3.common.util.ParsableBitArray;
 import androidx.media3.common.util.ParsableByteArray;
 import androidx.media3.common.util.TimestampAdjuster;
@@ -52,8 +53,10 @@ public final class ShadowTsExtractor implements Extractor {
 
     /** Behave as defined in ISO/IEC 13818-1. */
     public static final int MODE_MULTI_PMT = 0;
+
     /** Assume only one PMT will be contained in the stream, even if more are declared by the PAT. */
     public static final int MODE_SINGLE_PMT = 1;
+
     /**
      * Enable single PMT mode, map {@link TrackOutput}s by their type (instead of PID) and ignore
      * continuity counters.
@@ -302,6 +305,13 @@ public final class ShadowTsExtractor implements Extractor {
         }
 
         if (!fillBufferWithAtLeastOnePacket(input)) {
+            // Send a synthesised empty pusi to allow for packetFinished to be triggered on the last unit.
+            for (int i = 0; i < tsPayloadReaders.size(); i++) {
+                TsPayloadReader payloadReader = tsPayloadReaders.valueAt(i);
+                if (payloadReader instanceof PesReader) {
+                    payloadReader.consume(new ParsableByteArray(), FLAG_PAYLOAD_UNIT_START_INDICATOR);
+                }
+            }
             return RESULT_END_OF_INPUT;
         }
 
@@ -537,7 +547,7 @@ public final class ShadowTsExtractor implements Extractor {
         private static final int TS_PMT_DESC_DVB_EXT_AC4 = 0x15;
 
         private final ParsableBitArray pmtScratch;
-        private final SparseArray<TsPayloadReader> trackIdToReaderScratch;
+        private final SparseArray<@NullableType TsPayloadReader> trackIdToReaderScratch;
         private final SparseIntArray trackIdToPidScratch;
         private final int pid;
 
